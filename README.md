@@ -4,6 +4,7 @@ A single-page tool for making buffers to a target osmolality. Enter the componen
 
 It runs entirely in the browser. Nothing is sent anywhere; your last solution and your stock concentrations are kept in the browser's local storage.
 
+
 ## Features
 
 - Non-ideal osmotic coefficients: Pitzer model for salts; published Norrish water-activity models for glucose, sucrose, sorbitol, mannitol, glycerol and urea; sucrose-equivalent Norrish treatment for trehalose; legacy approximations for DMSO and ethanol; virial estimate for PEG.
