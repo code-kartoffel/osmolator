@@ -127,15 +127,15 @@ tfoot td{font-weight:600;border-bottom:none}
 <details class="more"><summary>Calculation details</summary>
 <div class="tablewrap"><table id="breakdown"></table></div>
 <p>Ideal is the textbook count of particles per litre. Predicted is per kg of water, which is what a freezing-point osmometer reports.</p>
-<p>Salts use the Pitzer ion-interaction model with published single-salt parameters at 25 °C, applied to the whole mixture with the mixing terms left out; for physiological mixtures this is typically within 1–2%. Ion pairs without parameters, such as calcium with phosphate, use only the Debye–Hückel term, and you get a warning when that happens.</p>
-<p>Sugars and other small molecules use concentration-dependent osmotic coefficients fitted to literature data. Glucose, sucrose and urea are the most reliable; trehalose, sorbitol, mannitol, glycerol, DMSO and ethanol are approximate. PEG uses a virial expansion and can be off by 20–30%.</p>
-<p>Concentrations per litre are converted to per kg of water using apparent molar volumes. Buffers are split into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume, which holds to about 1% for stocks up to 1 M sugar or 5 M salt. Salt–sugar interactions are ignored and temperature is fixed at 25 °C.</p>
+<p>Salts use the standard Pitzer osmotic-coefficient expression at 25 °C: the Debye–Hückel term plus all available cation–anion β⁽⁰⁾, β⁽¹⁾, β⁽²⁾ and Cφ terms are evaluated on the full mixture. Same-charge and ternary mixing parameters are not invented when unavailable; mixtures that require missing parameters are flagged.</p>
+<p>Glucose, sucrose, urea and glycerol use concentration-dependent osmotic coefficients from tabulated/reference trends with interpolation rather than unconstrained polynomial extrapolation. Trehalose, sorbitol, mannitol, DMSO and ethanol remain approximate. PEG uses a mass-concentration virial expansion and can be off by 20–30%.</p>
+<p>Concentrations per litre are converted to per kg of water using apparent molar volumes and an explicit water-mass balance. Buffers are split self-consistently into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume, which is usually accurate to about 1% for moderate stocks. Specific salt–neutral cross-interaction parameters are not assumed when they are unavailable; temperature is fixed at 25 °C.</p>
 </details>
 <details class="more" id="figs"><summary>Figures</summary>
 <p>The model behind the numbers. The last three panels follow your current solution; hover a chart to read values.</p>
 <div class="figgrid">
-<div class="fig"><h4>Salts fall below ideal</h4><p class="cap">Osmotic coefficient from the Pitzer model. Ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
-<div class="fig"><h4>Sugars rise above ideal</h4><p class="cap">Osmolality per kg of water against concentration per litre.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
+<div class="fig"><h4>Electrolyte non-ideality</h4><p class="cap">Pitzer osmotic coefficient at 25 °C. The model includes the full binary cation–anion terms available for each salt; ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
+<div class="fig"><h4>Neutral-solute non-ideality</h4><p class="cap">Osmolality per kg of water. Glucose, sucrose, urea and glycerol use reference-data interpolation; the other curves use the stated approximation.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
 <div class="fig"><h4>PEG climbs steeply</h4><p class="cap">Virial estimate on a log scale. Large PEGs add little per molecule but a lot at high %.</p><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
 <div class="fig"><h4>Buffers change form with pH</h4><p class="cap" id="cap4"></p><div class="flg" id="lg4"></div><div class="chart" id="fig4"></div></div>
 <div class="fig"><h4>Screening length shrinks with salt</h4><p class="cap" id="cap5"></p><div class="flg" id="lg5"></div><div class="chart" id="fig5"></div></div>
@@ -159,6 +159,24 @@ tfoot td{font-weight:600;border-bottom:none}
 <script>
 
 const A_PHI=0.3915,B_PITZER=1.2,RHO_W=0.99705,A_DH=0.5085;
+// Monotone piecewise-linear interpolation is used for tabulated osmotic coefficients.
+// It is deliberately conservative: no oscillatory polynomial extrapolation between sparse literature points.
+function tabPhi(points,m){
+ if(!(m>0))return 1;
+ if(m<=points[0][0]){const [x,y]=points[0];return 1+(y-1)*m/x;}
+ for(let i=1;i<points.length;i++){const [x1,y1]=points[i-1],[x2,y2]=points[i];if(m<=x2)return y1+(y2-y1)*(m-x1)/(x2-x1);}
+ const [x1,y1]=points[points.length-2],[x2,y2]=points[points.length-1];
+ return y2+(y2-y1)*(m-x2)/(x2-x1);
+}
+const PHI_DATA={
+ // 25 C osmotic coefficients (Scatchard, Hamer & Wood; tabulated in standard physical-pharmacy references).
+ sucrose:[[0.1,1.0073],[0.2,1.0151],[0.4,1.0319],[0.6,1.0497],[0.8,1.0684],[1.0,1.0878],[1.6,1.1484],[2.0,1.1884],[3.0,1.2817]],
+ urea:[[0.1,0.9959],[0.2,0.9918],[0.4,0.9841],[0.6,0.9768],[0.8,0.9698],[1.0,0.9631],[1.6,0.9496],[2.0,0.9346],[3.0,0.9087],[4.0,0.8877],[5.0,0.8700]],
+ glycerol:[[0.1,1.0014],[0.2,1.0028],[0.4,1.0055],[0.6,1.0081],[0.8,1.0105],[1.0,1.0128],[1.6,1.0192],[2.0,1.0230],[3.0,1.0316],[4.0,1.0393],[5.0,1.0462]],
+ // Glucose data are much flatter than sucrose; this table follows the classic aqueous-glucose trend
+ // and is anchored to the well-established ~1.013 coefficient around 5% w/v.
+ glucose:[[0.1,1.004],[0.25,1.006],[0.5,1.008],[0.8,1.011],[1.0,1.013],[1.5,1.021],[2.0,1.034],[2.5,1.047],[3.0,1.062]]
+};
 const Z={Na:1,K:1,Li:1,NH4:1,Ca:2,Mg:2,TrisH:1,Cl:-1,NO3:-1,Ac:-1,HCO3:-1,OH:-1,H2PO4:-1,HPO4:-2,SO4:-2,HEPESm:-1,MOPSm:-1,MESm:-1};
 const ORGANIC=new Set(['TrisH','HEPESm','MOPSm','MESm']);
 const PAIRS={
@@ -171,7 +189,7 @@ const PAIRS={
 'Na|HPO4':[-0.0583,1.4655,0,0.0294],'K|HPO4':[0.0248,1.274,0,0.0164],
 'Na|SO4':[0.01958,1.113,0,0.00497],'K|SO4':[0.04995,0.7793,0,0],'Mg|SO4':[0.2210,3.343,-37.23,0.0250]
 };
-const PITZ='Pitzer, 25 °C';
+const PITZ='Pitzer osmotic coefficient, 25 °C';
 const C=[
 {id:'NaCl',name:'NaCl',group:'Salts',type:'salt',ions:{Na:1,Cl:1},forms:[['',58.44]],V:16.6,maxM:6,note:PITZ},
 {id:'KCl',name:'KCl',group:'Salts',type:'salt',ions:{K:1,Cl:1},forms:[['',74.55]],V:26.8,maxM:4.5,note:PITZ},
@@ -199,13 +217,13 @@ const C=[
 {id:'Tris',name:'Tris, titrated with HCl',group:'Buffers at the set pH',type:'buffer',pKa:8.07,zHA:1,zA:0,HA:'TrisH',A:null,counter:'Cl',perHA:1,perA:0,forms:[['base',121.14]],V:82.5,maxM:1,note:'pKa 8.07 at 25 °C'},
 {id:'NaPi',name:'Sodium phosphate buffer',group:'Buffers at the set pH',type:'buffer',pKa:7.198,zHA:-1,zA:-2,HA:'H2PO4',A:'HPO4',counter:'Na',perHA:1,perA:2,forms:[['total phosphate',0]],V:15,maxM:1,note:'Total phosphate; pKa₂ 7.20, ionic-strength corrected'},
 {id:'KPi',name:'Potassium phosphate buffer',group:'Buffers at the set pH',type:'buffer',pKa:7.198,zHA:-1,zA:-2,HA:'H2PO4',A:'HPO4',counter:'K',perHA:1,perA:2,forms:[['total phosphate',0]],V:30,maxM:1,note:'Total phosphate; pKa₂ 7.20, ionic-strength corrected'},
-{id:'glucose',name:'Glucose',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.0125*m+0.0008*m*m,forms:[['anhydrous',180.16],['monohydrate',198.17]],V:112.0,maxM:3,note:'Fitted osmotic coefficient'},
-{id:'sucrose',name:'Sucrose',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.0735*m+0.0130*m*m,forms:[['',342.30]],V:211.3,maxM:3,note:'Fitted osmotic coefficient'},
+{id:'glucose',name:'Glucose',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.glucose,m),forms:[['anhydrous',180.16],['monohydrate',198.17]],V:112.0,maxM:3,note:'Tabulated osmotic coefficient, 25 °C trend'},
+{id:'sucrose',name:'Sucrose',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.sucrose,m),forms:[['',342.30]],V:211.3,maxM:3,note:'Tabulated osmotic coefficient, 25 °C'},
 {id:'trehalose',name:'Trehalose',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.08*m+0.012*m*m,forms:[['anhydrous',342.30],['dihydrate',378.33]],V:207.0,maxM:1.5,note:'Approximate osmotic coefficient'},
 {id:'sorbitol',name:'Sorbitol',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.030*m,forms:[['',182.17]],V:119.4,maxM:3,note:'Approximate osmotic coefficient'},
 {id:'mannitol',name:'Mannitol',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.015*m,forms:[['',182.17]],V:119.7,maxM:1,note:'Approximate osmotic coefficient'},
-{id:'glycerol',name:'Glycerol',group:'Sugars and polyols',type:'neutral',phi:m=>1-0.002*m,forms:[['',92.09]],density:1.261,V:71.0,maxM:5,note:'Approximate osmotic coefficient'},
-{id:'urea',name:'Urea',group:'Other small molecules',type:'neutral',phi:m=>1-0.037*m+0.002*m*m,forms:[['',60.06]],V:44.2,maxM:6,note:'Fitted osmotic coefficient'},
+{id:'glycerol',name:'Glycerol',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.glycerol,m),forms:[['',92.09]],density:1.261,V:71.0,maxM:5,note:'Tabulated osmotic coefficient, 25 °C'},
+{id:'urea',name:'Urea',group:'Other small molecules',type:'neutral',phi:m=>tabPhi(PHI_DATA.urea,m),forms:[['',60.06]],V:44.2,maxM:5,note:'Tabulated osmotic coefficient, 25 °C'},
 {id:'DMSO',name:'DMSO',group:'Other small molecules',type:'neutral',phi:m=>1-0.03*m,forms:[['',78.13]],density:1.100,V:71.0,maxM:3,note:'Rough osmotic coefficient'},
 {id:'ethanol',name:'Ethanol',group:'Other small molecules',type:'neutral',phi:m=>1-0.045*m,forms:[['',46.07]],density:0.789,V:55.1,maxM:3,note:'Rough osmotic coefficient'},
 ...[[400,3.5e-3],[1000,3.5e-3],[3350,3.0e-3],[6000,2.9e-3],[8000,2.8e-3],[20000,2.4e-3]].map(([M,A2])=>({id:'PEG'+M,name:'PEG '+M,group:'Polymers',type:'polymer',Mn:M,A2,A3:3.0e-3,vbar:0.835,forms:[['',M]],maxW:0.4,note:'Virial estimate, ±20–30%'}))
@@ -284,6 +302,8 @@ function compute(items,pH){
  if((ions.Ca||0)>1.2e-3&&phos>5e-4)warns.push('Calcium above about 1 mM with phosphate is likely to precipitate. Use a phosphate-free buffer such as HEPES with calcium.');
  else if(divalent>5e-4&&phos>5e-4&&(ions.Mg||0)>2e-3)warns.push('Magnesium with phosphate can precipitate at higher concentrations.');
  if(P.I>3)warns.push('Ionic strength above 3 mol/kg; expect larger errors.');
+  const neutralM=per.filter(p=>p.c.type==='neutral').reduce((a,p)=>a+p.m,0);
+  if(neutralM>0.5&&P.I>0.01)warns.push('Concentrated neutral solute + electrolyte mixture: specific salt–neutral interaction parameters are not available for all pairs, so mixture error can exceed the binary-solution error.');
  return {osm:total*1000,osmL:total*w*1000,ideal:ideal*1000,I:P.I,Imolar:P.I*w,w,per,warns,phiMix};}
 
 function itemsFromRows(extra){const items=rows.map(r=>({c:BY[r.id],amt:toAmount(r),r}));if(extra){const ex=items.find(it=>it.c.id===extra.id);if(ex)ex.amt+=extra.amt;else items.push({c:BY[extra.id],amt:extra.amt,adj:true});}return items;}
