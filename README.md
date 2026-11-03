@@ -11,7 +11,7 @@ It runs entirely in the browser. Nothing is sent anywhere; your last solution an
 - Stocks remembered per component, with pipetting volumes in µL or mL and the water to add.
 - Target as a reference plus an offset, for example vesicle interior + 50 mOsm/kg.
 - Optional calibration to a measured osmolality of the base solution.
-- Iterative post-measurement correction: enter the osmometer result and press one **Adjust** button; the app automatically accounts for the test sample removal (50 µL by default) and calculates the next addition while keeping all non-adjuster components at their starting concentrations. The corrected state is carried into the next test cycle.
+- Iterative post-measurement correction: enter the osmometer result and press one **Adjust** button; the app automatically accounts for the test sample removal (50 µL by default) and calculates the next addition while keeping all non-adjuster components at their starting concentrations. The corrected state is carried into the next test cycle. For glucose, sucrose and trehalose, the workflow can learn an effective sugar-stock concentration from the measured response to previous additions; salts, buffers and all other stocks are always trusted at their entered concentrations.
 - Ionic strength and Debye length of the final solution.
 - A collapsible Figures section showing the model behind the numbers: salt and sugar non-ideality, PEG, buffer speciation, Debye length and how the top-up is solved. The last three charts follow your current solution.
 
@@ -55,6 +55,14 @@ After the initial recipe is prepared, click **Start correction workflow**. The w
 3. If osmolality is too low, the calculator recommends the selected osmolyte stock plus the required amounts of every background-component stock so their original concentrations remain unchanged.
 4. If osmolality is too high, it recommends a matched dilution: water plus the required background-component stocks, so the osmolyte is diluted while background concentrations remain unchanged.
 5. Make the suggested addition and press **Apply suggested addition**. The corrected volume and amounts become the starting point for the next test. Measure the next sample, enter its result, and press **Adjust** again.
+
+### Sugar-stock learning
+
+When the adjuster is **glucose, sucrose or trehalose**, the workflow also estimates the effective concentration of that sugar stock. The first measurement alone cannot distinguish a model offset from a wrong stock concentration, so no stock estimate is made yet. After the app has recommended and you have applied one sugar-stock addition, the next measurement provides an observed osmotic response to a known added volume. The calculator solves for the sugar-stock concentration that best reproduces that measured change while treating every salt, buffer and other stock concentration as exact.
+
+Each usable response produces a per-cycle sugar-stock estimate. The app shows these estimates against the nominal stock concentration and calculates a response-weighted running best estimate. Subsequent sugar-addition recommendations use that running best estimate automatically. The nominal concentration entered in the main table is not overwritten.
+
+Learning is deliberately limited to glucose, sucrose and trehalose. Sorbitol, mannitol, glycerol, salts, buffers and all other stocks remain fixed at their entered concentrations. This avoids trying to infer several unknown stock concentrations from a single osmometer measurement.
 
 The correction workflow requires liquid stocks that are more concentrated than the fixed background concentrations. It preserves every non-adjuster component, not just salts, so salt and buffer concentrations do not drift during repeated corrections.
 
