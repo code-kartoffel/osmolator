@@ -12,6 +12,7 @@ It runs entirely in the browser. Nothing is sent anywhere; your last solution an
 - Target as a reference plus an offset, for example vesicle interior + 50 mOsm/kg.
 - Optional calibration to a measured osmolality of the base solution.
 - Ionic strength and Debye length of the final solution.
+- A collapsible Figures section showing the model behind the numbers: salt and sugar non-ideality, PEG, buffer speciation, Debye length and how the top-up is solved. The last three charts follow your current solution.
 
 ## Publish it on GitHub Pages (recommended)
 

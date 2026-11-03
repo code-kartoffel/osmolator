@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#EFF3F2;--surface:#FFFFFF;--ink:#14232A;--ink-2:#4A5A61;--ink-3:#6E7E85;--line:#D2DBDA;--accent:#0D6E6C;--accent-ink:#FFFFFF;--warn:#8A5200;--warn-bg:#FFF4DF;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0E1517;--surface:#162024;--ink:#E3EBEC;--ink-2:#A5B4B8;--ink-3:#7F8F94;--line:#29373B;--accent:#4CC3BE;--accent-ink:#06201F;--warn:#F2B45A;--warn-bg:#2C2312;color-scheme:dark}}
+:root{--bg:#EFF3F2;--surface:#FFFFFF;--ink:#14232A;--ink-2:#4A5A61;--ink-3:#6E7E85;--line:#D2DBDA;--accent:#0D6E6C;--accent-ink:#FFFFFF;--warn:#8A5200;--warn-bg:#FFF4DF;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#6250d6;--grid:#E3E9E8;--axis:#B9C4C3;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1517;--surface:#162024;--ink:#E3EBEC;--ink-2:#A5B4B8;--ink-3:#7F8F94;--line:#29373B;--accent:#4CC3BE;--accent-ink:#06201F;--warn:#F2B45A;--warn-bg:#2C2312;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#9085e9;--grid:#243034;--axis:#3A494D;color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
@@ -84,6 +84,15 @@ tr.water td{border-bottom:none}
 .more td,.more th{white-space:nowrap;padding-right:14px}
 .more p{color:var(--ink-2);max-width:78ch;margin:10px 0}
 tfoot td{font-weight:600;border-bottom:none}
+.more+.more{margin-top:18px}
+.figgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px 32px;margin:16px 0 8px}
+.fig h4{font-size:15px;font-weight:600;margin:0 0 2px}
+.more .fig p.cap{font-size:13px;color:var(--ink-2);margin:0 0 6px;max-width:none;min-height:2.9em}
+.flg{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:12.5px;color:var(--ink-2);margin:0 0 2px}
+.flg span{display:inline-flex;align-items:center;gap:5px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;font-family:inherit}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;line-height:1.45;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2}
 </style>
 </head>
 <body>
@@ -121,6 +130,17 @@ tfoot td{font-weight:600;border-bottom:none}
 <p>Salts use the Pitzer ion-interaction model with published single-salt parameters at 25 °C, applied to the whole mixture with the mixing terms left out; for physiological mixtures this is typically within 1–2%. Ion pairs without parameters, such as calcium with phosphate, use only the Debye–Hückel term, and you get a warning when that happens.</p>
 <p>Sugars and other small molecules use concentration-dependent osmotic coefficients fitted to literature data. Glucose, sucrose and urea are the most reliable; trehalose, sorbitol, mannitol, glycerol, DMSO and ethanol are approximate. PEG uses a virial expansion and can be off by 20–30%.</p>
 <p>Concentrations per litre are converted to per kg of water using apparent molar volumes. Buffers are split into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume, which holds to about 1% for stocks up to 1 M sugar or 5 M salt. Salt–sugar interactions are ignored and temperature is fixed at 25 °C.</p>
+</details>
+<details class="more" id="figs"><summary>Figures</summary>
+<p>The model behind the numbers. The last three panels follow your current solution; hover a chart to read values.</p>
+<div class="figgrid">
+<div class="fig"><h4>Salts fall below ideal</h4><p class="cap">Osmotic coefficient from the Pitzer model. Ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
+<div class="fig"><h4>Sugars rise above ideal</h4><p class="cap">Osmolality per kg of water against concentration per litre.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
+<div class="fig"><h4>PEG climbs steeply</h4><p class="cap">Virial estimate on a log scale. Large PEGs add little per molecule but a lot at high %.</p><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
+<div class="fig"><h4>Buffers change form with pH</h4><p class="cap" id="cap4"></p><div class="flg" id="lg4"></div><div class="chart" id="fig4"></div></div>
+<div class="fig"><h4>Screening length shrinks with salt</h4><p class="cap" id="cap5"></p><div class="flg" id="lg5"></div><div class="chart" id="fig5"></div></div>
+<div class="fig"><h4>How the top-up is solved</h4><p class="cap" id="cap6"></p><div class="flg" id="lg6"></div><div class="chart" id="fig6"></div></div>
+</div>
 </details>
 </main>
 <aside class="panel" aria-live="polite">
@@ -298,6 +318,7 @@ function addText(c,amt,form,V){if(!hasStock(c))return {text:V>0?massText(c,amt,f
 function needsForm(c,unitA,stockUnit,stock){return c.forms.length>1&&(!(stock>0)||['gL','pct'].includes(stockUnit)||['gL','pct'].includes(unitA));}
 
 let rowsEl=null;const $=id=>document.getElementById(id);
+const lname=c=>['Sugars and polyols','Other small molecules'].includes(c.group)&&c.id!=='DMSO'?c.name.toLowerCase():c.name;
 function compOptions(sel){let h='',g='';for(const c of C){if(c.group!==g){if(g)h+='</optgroup>';g=c.group;h+='<optgroup label="'+g+'">';}h+='<option value="'+c.id+'"'+(c.id===sel?' selected':'')+'>'+c.name+'</option>';}return h+'</optgroup>';}
 function opts(list,sel){return list.map(u=>'<option value="'+u[0]+'"'+(u[0]===sel?' selected':'')+'>'+u[1]+'</option>').join('');}
 function formOpts(c,sel){return c.forms.map((f,k)=>'<option value="'+k+'"'+(k===sel?' selected':'')+'>'+f[0]+'</option>').join('');}
@@ -324,7 +345,7 @@ function buildRows(){rowsEl.innerHTML='';
  $('rowHead').hidden=!rows.length;
  if(!rows.length){const p=document.createElement('p');p.className='empty';p.textContent='No components yet. Add one, or start from a preset.';rowsEl.appendChild(p);}}
 
-function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.adj],V=parseFloat(st.vol)||0,nm=adj.name.toLowerCase();
+function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.adj],V=parseFloat(st.vol)||0,nm=lname(adj);
  const ok=S.status==='ok'&&S.x>0,res=ok?S.final:base;
  $('phWrap').hidden=!rows.some(r=>BY[r.id].type==='buffer');
  $('bigLabel').textContent=ok?'After topping up':'Components as listed';
@@ -362,7 +383,7 @@ function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.a
  res.per.forEach((p,i)=>{if(!(p.amt>0))return;const added=i>=rows.length;bh+='<tr'+(added?' class="adj"':'')+'><td>'+p.c.name+(added?' (top-up)':'')+(p.c.type==='buffer'?' ('+fmt(100*p.f,0)+'% base form)':'')+'</td><td>'+fmt(p.m*1000,p.c.type==='polymer'?2:1)+' mmol/kg</td><td>'+fmt(p.ideal*1000,1)+'</td><td>'+fmt(p.contrib*1000,1)+'</td><td>'+p.c.note+'</td></tr>';});
  bh+='</tbody><tfoot><tr><td>Total</td><td></td><td>'+fmt(res.ideal,1)+' mOsm/L</td><td>'+fmt(res.osm,1)+' mOsm/kg</td><td>'+(off?'plus measured offset '+fmt(off,1):'')+'</td></tr></tfoot>';
  $('breakdown').innerHTML=bh;
- window._last={S,adj,V};}
+ window._last={S,adj,V};if(figsOpen())drawDynamicFigs();}
 
 function recipeText(){const {S,adj,V}=window._last;const lines=[];lines.push('Solution'+(V>0?', '+vText(V)+' final':'')+(rows.some(r=>BY[r.id].type==='buffer')?', buffers at pH '+st.pH:''));
  let volSum=0,anySolid=false;const add=(c,amt,form,label)=>{const ad=addText(c,amt,form,V);if(ad.vol)volSum+=ad.vol;if(ad.solid)anySolid=true;lines.push(label+': '+concLabel(c,amt)+(V>0&&!ad.err?', '+(ad.solid?'weigh '+ad.text:ad.text+' of '+stockLabel(c)+' stock'):''));};
@@ -372,7 +393,77 @@ function recipeText(){const {S,adj,V}=window._last;const lines=[];lines.push('So
  const res=S.status==='ok'?S.final:S.base;lines.push('Predicted osmolality: '+fmt(res.osm+(S.offset||0),1)+' mOsm/kg'+(S.meas?' (calibrated to measured '+fmt(S.meas,0)+')':''));
  lines.push('Ionic strength: '+fmt(res.Imolar*1000,1)+' mM');return lines.join('\n');}
 
-function boot(){rowsEl=$('rows');
+const SER=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'],DASHES=['','6 4','2 3','10 4 2 4','4 2',''];
+function niceTicks(a,b,n){const st0=(b-a)/n,mag=Math.pow(10,Math.floor(Math.log10(st0))),f=st0/mag,step=(f<1.5?1:f<3?2:f<7?5:10)*mag,t=[];for(let v=Math.ceil(a/step-1e-9)*step;v<=b+1e-9;v+=step)t.push(+v.toFixed(10));return t;}
+function logTicks(a,b){const t=[];for(let e=Math.ceil(Math.log10(a)-1e-9);e<=Math.floor(Math.log10(b)+1e-9);e++)t.push(Math.pow(10,e));return t;}
+function fmtTick(v){if(v===0)return '0';const a=Math.abs(v);if(a>=10000)return (v/1000)+'k';if(a>=1)return String(+v.toFixed(2));return String(+v.toPrecision(2));}
+function legendHTML(items){return items.map(it=>it.marker?'<span><svg width="10" height="10" aria-hidden="true"><rect x="2" y="2" width="6" height="6" transform="rotate(45 5 5)" fill="'+it.color+'"/></svg>'+it.label+'</span>':'<span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="'+it.color+'" stroke-width="2" stroke-dasharray="'+(it.dash||'')+'"/></svg>'+it.label+'</span>').join('');}
+let chartSeq=0;
+function drawChart(el,o){const W=440,H=260,L=50,R=22,T=12,B=40,pw=W-L-R,ph=H-T-B,lx=Math.log10;
+ const X=o.xlog?v=>L+pw*(lx(v)-lx(o.xmin))/(lx(o.xmax)-lx(o.xmin)):v=>L+pw*(v-o.xmin)/(o.xmax-o.xmin);
+ const Y=o.ylog?v=>T+ph*(1-(lx(v)-lx(o.ymin))/(lx(o.ymax)-lx(o.ymin))):v=>T+ph*(1-(v-o.ymin)/(o.ymax-o.ymin));
+ const xt=o.xlog?logTicks(o.xmin,o.xmax):niceTicks(o.xmin,o.xmax,6),yt=o.ylog?logTicks(o.ymin,o.ymax):niceTicks(o.ymin,o.ymax,5),id='clip'+(++chartSeq);
+ let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'"><defs><clipPath id="'+id+'"><rect x="'+L+'" y="'+(T-2)+'" width="'+pw+'" height="'+(ph+4)+'"/></clipPath></defs>';
+ for(const v of yt){const y=Y(v).toFixed(1);s+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+y+'" y2="'+y+'" stroke="var(--grid)"/><text x="'+(L-6)+'" y="'+(+y+4)+'" text-anchor="end" font-size="11" fill="var(--ink-3)">'+fmtTick(v)+'</text>';}
+ for(const v of xt){const x=X(v).toFixed(1);s+='<line x1="'+x+'" x2="'+x+'" y1="'+(T+ph)+'" y2="'+(T+ph+4)+'" stroke="var(--axis)"/><text x="'+x+'" y="'+(T+ph+16)+'" text-anchor="middle" font-size="11" fill="var(--ink-3)">'+fmtTick(v)+'</text>';}
+ s+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+(T+ph)+'" y2="'+(T+ph)+'" stroke="var(--axis)"/><text x="'+(L+pw/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="12" fill="var(--ink-2)">'+o.xt+'</text><text transform="translate(13 '+(T+ph/2)+') rotate(-90)" text-anchor="middle" font-size="12" fill="var(--ink-2)">'+o.yt+'</text><g clip-path="url(#'+id+')">';
+ for(const se of o.series){const p=se.pts.filter(q=>isFinite(q.x)&&isFinite(q.y)&&(!o.xlog||q.x>0)&&(!o.ylog||q.y>0));if(p.length<2)continue;
+  s+='<path d="'+p.map((q,i)=>(i?'L':'M')+X(q.x).toFixed(1)+' '+Y(Math.max(Math.min(q.y,o.ymax*4),o.ylog?o.ymin/4:o.ymin-(o.ymax-o.ymin))).toFixed(1)).join('')+'" fill="none" stroke="'+se.color+'" stroke-width="'+(se.width||2)+'" stroke-dasharray="'+(se.dash||'')+'" stroke-linejoin="round" stroke-linecap="round"/>';}
+ s+='</g><line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(T+ph)+'" stroke="var(--ink-3)" visibility="hidden"/><rect class="hov" x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'" fill="transparent"/>';
+ for(const q of (o.points||[])){const x=X(q.x),y=Y(q.y);if(!isFinite(x)||!isFinite(y))continue;s+='<g><title>'+q.label+'</title><rect x="'+(x-4.5).toFixed(1)+'" y="'+(y-4.5).toFixed(1)+'" width="9" height="9" transform="rotate(45 '+x.toFixed(1)+' '+y.toFixed(1)+')" fill="'+q.color+'" stroke="var(--surface)" stroke-width="2"/></g>';}
+ el.innerHTML=s+'</svg><div class="tip" hidden></div>';
+ const svg=el.querySelector('svg'),hov=el.querySelector('.hov'),xh=el.querySelector('.xh'),tip=el.querySelector('.tip');
+ const inv=px=>o.xlog?Math.pow(10,lx(o.xmin)+(px-L)/pw*(lx(o.xmax)-lx(o.xmin))):o.xmin+(px-L)/pw*(o.xmax-o.xmin);
+ hov.addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect();if(!r.width)return;const px=(e.clientX-r.left)*W/r.width,xv=inv(px),out=[];
+  for(const se of o.series){if(se.hover===false)continue;const p=se.pts;if(p.length<2||xv<p[0].x||xv>p[p.length-1].x)continue;let k=1;while(k<p.length-1&&p[k].x<xv)k++;const a=p[k-1],b=p[k],y=b.x===a.x?a.y:a.y+(b.y-a.y)*(xv-a.x)/(b.x-a.x);
+   out.push('<span style="color:'+se.color+'">■</span> '+se.label+': '+o.fy(y));}
+  xh.setAttribute('x1',px);xh.setAttribute('x2',px);xh.setAttribute('visibility','visible');tip.innerHTML='<b>'+o.fx(xv)+'</b><br>'+out.join('<br>');tip.hidden=false;
+  const cx=px/W*r.width,cw=tip.offsetWidth;tip.style.left=(cx+14+cw>r.width?Math.max(0,cx-14-cw):cx+14)+'px';tip.style.top='6px';});
+ hov.addEventListener('mouseleave',()=>{tip.hidden=true;xh.setAttribute('visibility','hidden');});}
+const range=(a,b,n)=>Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));
+const figsOpen=()=>{const f=$('figs');return !!(f&&f.open);};
+let staticDrawn=false,refIonic=null;
+function drawStaticFigs(){
+ const salts=['NaCl','KCl','CaCl2','MgCl2','MgSO4'],mm=range(0.005,2,120);
+ const s1=salts.map((id,k)=>({label:BY[id].name,color:SER[k],dash:DASHES[k],pts:mm.map(m=>{const io={};for(const ion in BY[id].ions)io[ion]=BY[id].ions[ion]*m;const P=pitzer(io);return {x:m,y:P.osm/P.sum};})}));
+ s1.push({label:'Ideal',color:'var(--ink-3)',dash:'5 4',pts:[{x:0,y:1},{x:2,y:1}],hover:false});
+ $('lg1').innerHTML=legendHTML(s1);drawChart($('fig1'),{series:s1,xmin:0,xmax:2,ymin:0.4,ymax:1.6,xt:'Molality (mol/kg)',yt:'Osmotic coefficient φ',fy:v=>v.toFixed(3),fx:v=>fmt(v,2)+' mol/kg',aria:'Osmotic coefficients of NaCl, KCl, CaCl2, MgCl2 and MgSO4 against molality, all below 1'});
+ const sug=['sucrose','trehalose','glucose','glycerol','urea'],cc=range(0,1000,101);
+ const s2=sug.map((id,k)=>({label:BY[id].name,color:SER[k],dash:DASHES[k],pts:cc.map(c=>({x:c,y:compute([{c:BY[id],amt:c/1000}],7.4).osm}))}));
+ s2.push({label:'Ideal',color:'var(--ink-3)',dash:'5 4',pts:cc.map(c=>({x:c,y:c}))});
+ $('lg2').innerHTML=legendHTML(s2);drawChart($('fig2'),{series:s2,xmin:0,xmax:1000,ymin:0,ymax:1500,xt:'Concentration (mM)',yt:'mOsm/kg',fy:v=>fmt(v,0)+' mOsm/kg',fx:v=>fmt(v,0)+' mM',aria:'Osmolality of sucrose, trehalose, glucose, glycerol and urea against concentration, compared with the ideal line'});
+ const pegs=['PEG400','PEG3350','PEG8000','PEG20000'],pp=range(0.5,30,60);
+ const s3=pegs.map((id,k)=>({label:BY[id].name,color:SER[k],dash:DASHES[k],pts:pp.map(p=>({x:p,y:compute([{c:BY[id],amt:p*10}],7.4).osm}))}));
+ $('lg3').innerHTML=legendHTML(s3);drawChart($('fig3'),{series:s3,xmin:0,xmax:30,ylog:true,ymin:1,ymax:3000,xt:'% w/v',yt:'mOsm/kg',fy:v=>fmt(v,v<10?1:0)+' mOsm/kg',fx:v=>fmt(v,1)+' % w/v',aria:'Osmolality of PEG 400, 3350, 8000 and 20000 against percent weight per volume on a log scale'});
+ const ref=n=>compute(PRESETS.find(p=>p[0]===n)[1].map(([id,v])=>({c:BY[id],amt:v/1000})),7.4).Imolar;
+ refIonic=[['5 mM CaCl₂',compute([{c:BY.CaCl2,amt:0.005}],7.4).Imolar],['90 mM NaCl',ref('90 mM NaCl')],['PBS 0.65×',ref('PBS 0.65×')],['150 mM NaCl',compute([{c:BY.NaCl,amt:0.15}],7.4).Imolar],['PBS 1×',ref('PBS 1×')]];
+ staticDrawn=true;}
+function drawDynamicFigs(){if(!staticDrawn)drawStaticFigs();const {S,adj}=window._last,off=S.offset||0,res=S.status==='ok'&&S.x>0?S.final:S.base;
+ const bufs=['MES','NaPi','MOPS','HEPES','Tris'],names={NaPi:'Phosphate'},ph=range(5,9.5,91),Dv=davies(0.15);
+ const s4=bufs.map((id,k)=>{const c=BY[id],pk=c.pKa+A_DH*Dv*(c.zHA*c.zHA-c.zA*c.zA);return {label:(names[id]||id)+' (pKa′ '+pk.toFixed(2)+')',color:SER[k],dash:DASHES[k],pts:ph.map(x=>({x,y:1/(1+Math.pow(10,pk-x))}))};});
+ const pH=Math.min(9.5,Math.max(5,st.pH));s4.push({label:'Your pH',color:'var(--ink-3)',dash:'5 4',pts:[{x:pH,y:0},{x:pH+1e-6,y:1}],hover:false});
+ $('lg4').innerHTML=legendHTML(s4.slice(0,5).map((s,k)=>Object.assign({},s,{label:names[bufs[k]]||bufs[k]})));$('cap4').textContent='Fraction in the base form at 150 mM ionic strength. Dashed line at your pH, '+fmt(st.pH,2)+'.';
+ drawChart($('fig4'),{series:s4,xmin:5,xmax:9.5,ymin:0,ymax:1,xt:'pH',yt:'Fraction in base form',fy:v=>fmt(100*v,0)+'%',fx:v=>'pH '+fmt(v,2),aria:'Fraction of MES, phosphate, MOPS, HEPES and Tris in the base form against pH'});
+ const curve=range(-3,0,81).map(e=>{const I=Math.pow(10,e);return {x:I*1000,y:0.304/Math.sqrt(I)};}),I=res.Imolar;
+ const pts=refIonic.map(([n,Ir])=>({x:Ir*1000,y:0.304/Math.sqrt(Ir),label:n+': '+fmt(Ir*1000,0)+' mM, '+fmt(0.304/Math.sqrt(Ir),2)+' nm',color:'var(--ink-3)'}));
+ if(I>0.001&&I<1)pts.push({x:I*1000,y:0.304/Math.sqrt(I),label:'This solution: '+fmt(I*1000,1)+' mM, '+fmt(0.304/Math.sqrt(I),2)+' nm',color:SER[1]});
+ $('lg5').innerHTML=legendHTML([{label:'Debye length',color:SER[0]},{label:'Reference conditions',color:'var(--ink-3)',marker:true},{label:'This solution',color:SER[1],marker:true}]);
+ $('cap5').textContent=I>0?'This solution: ionic strength '+fmt(I*1000,1)+' mM, Debye length '+fmt(0.304/Math.sqrt(I),2)+' nm. Hover the grey markers for reference conditions.':'This solution has no ions. Hover the grey markers for reference conditions.';
+ drawChart($('fig5'),{series:[{label:'Debye length',color:SER[0],pts:curve}],points:pts,xlog:true,xmin:1,xmax:1000,ymin:0,ymax:10,xt:'Ionic strength (mM)',yt:'Debye length (nm)',fy:v=>fmt(v,2)+' nm',fx:v=>fmt(v,v<10?1:0)+' mM',aria:'Debye length against ionic strength, with this solution and reference conditions marked'});
+ const xmax=S.status==='ok'&&S.x>0?Math.max(S.x*1.7,0.002):(adj.type==='neutral'?0.5:0.25),xs=range(0,xmax,61),pred=[],ideal=[];
+ for(const x of xs){const r=compute(itemsFromRows(x>0?{id:st.adj,amt:x}:null),st.pH);pred.push({x:x*1000,y:r.osm+off});ideal.push({x:x*1000,y:r.ideal});}
+ const ys=pred.concat(ideal).map(p=>p.y);if(S.target>0)ys.push(S.target);let ymin=Math.min(...ys),ymax=Math.max(...ys);const pad=(ymax-ymin)*0.08||10;ymin=Math.max(0,ymin-pad);ymax+=pad;
+ const s6=[{label:'Predicted',color:SER[0],pts:pred},{label:'Ideal count, per litre',color:'var(--ink-3)',dash:'5 4',pts:ideal}];
+ if(S.target>0)s6.push({label:'Target',color:SER[1],width:1.5,pts:[{x:0,y:S.target},{x:xmax*1000,y:S.target}],hover:false});
+ const p6=S.status==='ok'&&S.x>0?[{x:S.x*1000,y:S.target,label:'Add '+concLabel(adj,S.x)+' '+lname(adj),color:SER[1]}]:[];
+ $('lg6').innerHTML=legendHTML(s6);
+ let cap='Your components, topped up with '+lname(adj)+'. ';
+ if(S.status==='ok'&&S.x>0){const nu=adj.type==='salt'?Object.values(adj.ions).reduce((a,b)=>a+b,0):1,ix=Math.max(0,(S.target-S.base.ideal)/nu)/1000;cap+='The model says add '+concLabel(adj,S.x)+'; counting ideal particles would say '+concLabel(adj,ix)+'.';}
+ else if(S.status==='above')cap+='The components are already at or above the target.';else if(S.status==='unreachable')cap+='The target is out of reach within the model range.';else cap+='Set a target to see the solution.';
+ $('cap6').textContent=cap;
+ drawChart($('fig6'),{series:s6,points:p6,xmin:0,xmax:xmax*1000,ymin,ymax,xt:adj.name+' added (mM)',yt:'mOsm/kg',fy:v=>fmt(v,1),fx:v=>fmt(v,v<10?2:0)+' mM added',aria:'Predicted and ideal osmolality against the amount of '+adj.name+' added, with the target and the solution marked'});}
+
+function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(figsOpen())drawDynamicFigs();});
  const ps=$('preset');ps.innerHTML='<option value="">Start from a preset</option>'+PRESETS.map((p,k)=>'<option value="'+k+'">'+p[0]+'</option>').join('');
  ps.onchange=()=>{if(ps.value==='')return;const list=PRESETS[+ps.value][1];rows=list.map(([id,v])=>({id,val:v,unit:BY[id].type==='polymer'?'pct':'mM',form:0}));ps.value='';buildRows();update();};
  const adjSel=$('adj');adjSel.innerHTML=ADJUSTERS.map(id=>'<option value="'+id+'"'+(id===st.adj?' selected':'')+'>'+BY[id].name+'</option>').join('');
