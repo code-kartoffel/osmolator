@@ -85,6 +85,13 @@ tr.water td{border-bottom:none}
 .more p{color:var(--ink-2);max-width:78ch;margin:10px 0}
 tfoot td{font-weight:600;border-bottom:none}
 .more+.more{margin-top:18px}
+
+.corrstate{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.corrstate p{margin:3px 0;font-size:13.5px;color:var(--ink-2)}
+.corrstate .main{font-size:15px;color:var(--ink)}
+.corrbuttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.corrresult{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.corrhistory{margin-top:12px;overflow-x:auto}
 .figgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px 32px;margin:16px 0 8px}
 .fig h4{font-size:15px;font-weight:600;margin:0 0 2px}
 .more .fig p.cap{font-size:13px;color:var(--ink-2);margin:0 0 6px;max-width:none;min-height:2.9em}
@@ -124,18 +131,40 @@ tfoot td{font-weight:600;border-bottom:none}
 <p class="hint">The calculator then models only what you add on top, which removes most of the error from the salts.</p>
 </details>
 </section>
+<section id="corrSection">
+<h2>Iterative measured correction</h2>
+<p class="hint">After measuring a sample, enter the result and press Adjust. The app automatically accounts for the sample volume removed from the mix (50 µL by default), then calculates the correction for the remaining solution. All non-adjuster components are kept at their starting concentrations through repeated test–adjust cycles.</p>
+<div id="corrInactive" class="corrstate">
+<p class="main">Start from the currently calculated prepared mix.</p>
+<div class="corrbuttons"><button type="button" id="corrStart">Start correction workflow</button></div>
+</div>
+<div id="corrActive" hidden>
+<div class="fields">
+<label class="field">Sample removed per test (µL)<input type="number" id="corrSample" step="1" min="0"></label>
+<label class="field">Target (mOsm/kg)<input type="number" id="corrTarget" step="1" min="0"></label>
+<label class="field">Measured result (mOsm/kg)<input type="number" id="corrMeasured" step="1" min="0" placeholder="enter osmometer result"></label>
+</div>
+<div class="corrstate" id="corrState"></div>
+<div class="corrbuttons">
+<button type="button" id="corrAdjust">Adjust (sample already removed)</button>
+<button type="button" id="corrApply">Apply suggested addition</button>
+<button type="button" id="corrRestart">Restart from current recipe</button>
+</div>
+<div class="corrhistory" id="corrHistory"></div>
+</div>
+</section>
 <details class="more"><summary>Calculation details</summary>
 <div class="tablewrap"><table id="breakdown"></table></div>
 <p>Ideal is the textbook count of particles per litre. Predicted is per kg of water, which is what a freezing-point osmometer reports.</p>
-<p>Salts use the standard Pitzer osmotic-coefficient expression at 25 °C: the Debye–Hückel term plus all available cation–anion β⁽⁰⁾, β⁽¹⁾, β⁽²⁾ and Cφ terms are evaluated on the full mixture. Same-charge and ternary mixing parameters are not invented when unavailable; mixtures that require missing parameters are flagged.</p>
-<p>Glucose, sucrose, urea and glycerol use concentration-dependent osmotic coefficients from tabulated/reference trends with interpolation rather than unconstrained polynomial extrapolation. Trehalose, sorbitol, mannitol, DMSO and ethanol remain approximate. PEG uses a mass-concentration virial expansion and can be off by 20–30%.</p>
-<p>Concentrations per litre are converted to per kg of water using apparent molar volumes and an explicit water-mass balance. Buffers are split self-consistently into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume, which is usually accurate to about 1% for moderate stocks. Specific salt–neutral cross-interaction parameters are not assumed when they are unavailable; temperature is fixed at 25 °C.</p>
+<p>Salts use the Pitzer ion-interaction model at 25 °C with published binary ion-pair parameters. Same-charge and ternary mixed-electrolyte parameters are not invented when unavailable; mixtures that need missing interaction terms are flagged.</p>
+<p>Glucose, sucrose, sorbitol, mannitol, glycerol and urea are calculated from the published Norrish water-activity equation and published constants. Trehalose uses the sucrose Norrish constant because published measurements report nearly identical water-activity lowering at equal concentration. DMSO and ethanol retain the original approximate coefficients. PEG retains the original virial estimate and is explicitly marked approximate.</p>
+<p>Concentrations per litre are converted to per kg of water using apparent molar volumes. Buffers are split into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume. Specific salt–neutral cross-interactions are not added without published parameters; concentrated mixed solutions are therefore flagged. Temperature is fixed at 25 °C.</p>
 </details>
 <details class="more" id="figs"><summary>Figures</summary>
 <p>The model behind the numbers. The last three panels follow your current solution; hover a chart to read values.</p>
 <div class="figgrid">
-<div class="fig"><h4>Electrolyte non-ideality</h4><p class="cap">Pitzer osmotic coefficient at 25 °C. The model includes the full binary cation–anion terms available for each salt; ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
-<div class="fig"><h4>Neutral-solute non-ideality</h4><p class="cap">Osmolality per kg of water. Glucose, sucrose, urea and glycerol use reference-data interpolation; the other curves use the stated approximation.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
+<div class="fig"><h4>Salts fall below ideal</h4><p class="cap">Osmotic coefficient from the Pitzer model. Ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
+<div class="fig"><h4>Neutral-solute non-ideality</h4><p class="cap">Osmolality from published Norrish water-activity models where available; DMSO and ethanol remain legacy approximations.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
 <div class="fig"><h4>PEG climbs steeply</h4><p class="cap">Virial estimate on a log scale. Large PEGs add little per molecule but a lot at high %.</p><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
 <div class="fig"><h4>Buffers change form with pH</h4><p class="cap" id="cap4"></p><div class="flg" id="lg4"></div><div class="chart" id="fig4"></div></div>
 <div class="fig"><h4>Screening length shrinks with salt</h4><p class="cap" id="cap5"></p><div class="flg" id="lg5"></div><div class="chart" id="fig5"></div></div>
@@ -159,24 +188,18 @@ tfoot td{font-weight:600;border-bottom:none}
 <script>
 
 const A_PHI=0.3915,B_PITZER=1.2,RHO_W=0.99705,A_DH=0.5085;
-// Monotone piecewise-linear interpolation is used for tabulated osmotic coefficients.
-// It is deliberately conservative: no oscillatory polynomial extrapolation between sparse literature points.
-function tabPhi(points,m){
- if(!(m>0))return 1;
- if(m<=points[0][0]){const [x,y]=points[0];return 1+(y-1)*m/x;}
- for(let i=1;i<points.length;i++){const [x1,y1]=points[i-1],[x2,y2]=points[i];if(m<=x2)return y1+(y2-y1)*(m-x1)/(x2-x1);}
- const [x1,y1]=points[points.length-2],[x2,y2]=points[points.length-1];
- return y2+(y2-y1)*(m-x2)/(x2-x1);
+const MW_WATER_KG=0.01801528, MOL_WATER_PER_KG=1/MW_WATER_KG;
+// Norrish water-activity model for binary nonelectrolyte solutions:
+// a_w = x_w exp(-K x_s^2), then osmolality = -ln(a_w)/M_w.
+// K values below are from Chirife & Fontan, J. Food Technol. 15 (1980) 59-70.
+function norrishOsm(m,K){
+ if(!(m>0))return 0;
+ const xs=m/(MOL_WATER_PER_KG+m), xw=1-xs;
+ const aw=Math.max(1e-12,Math.min(1,xw*Math.exp(-K*xs*xs)));
+ return -Math.log(aw)/MW_WATER_KG;
 }
-const PHI_DATA={
- // 25 C osmotic coefficients (Scatchard, Hamer & Wood; tabulated in standard physical-pharmacy references).
- sucrose:[[0.1,1.0073],[0.2,1.0151],[0.4,1.0319],[0.6,1.0497],[0.8,1.0684],[1.0,1.0878],[1.6,1.1484],[2.0,1.1884],[3.0,1.2817]],
- urea:[[0.1,0.9959],[0.2,0.9918],[0.4,0.9841],[0.6,0.9768],[0.8,0.9698],[1.0,0.9631],[1.6,0.9496],[2.0,0.9346],[3.0,0.9087],[4.0,0.8877],[5.0,0.8700]],
- glycerol:[[0.1,1.0014],[0.2,1.0028],[0.4,1.0055],[0.6,1.0081],[0.8,1.0105],[1.0,1.0128],[1.6,1.0192],[2.0,1.0230],[3.0,1.0316],[4.0,1.0393],[5.0,1.0462]],
- // Glucose data are much flatter than sucrose; this table follows the classic aqueous-glucose trend
- // and is anchored to the well-established ~1.013 coefficient around 5% w/v.
- glucose:[[0.1,1.004],[0.25,1.006],[0.5,1.008],[0.8,1.011],[1.0,1.013],[1.5,1.021],[2.0,1.034],[2.5,1.047],[3.0,1.062]]
-};
+function norrishPhi(m,K){return m>0?norrishOsm(m,K)/m:1;}
+const NORRISH_K={glucose:2.25,sucrose:6.47,sorbitol:1.65,mannitol:0.906,glycerol:1.16,urea:-2.02};
 const Z={Na:1,K:1,Li:1,NH4:1,Ca:2,Mg:2,TrisH:1,Cl:-1,NO3:-1,Ac:-1,HCO3:-1,OH:-1,H2PO4:-1,HPO4:-2,SO4:-2,HEPESm:-1,MOPSm:-1,MESm:-1};
 const ORGANIC=new Set(['TrisH','HEPESm','MOPSm','MESm']);
 const PAIRS={
@@ -189,7 +212,7 @@ const PAIRS={
 'Na|HPO4':[-0.0583,1.4655,0,0.0294],'K|HPO4':[0.0248,1.274,0,0.0164],
 'Na|SO4':[0.01958,1.113,0,0.00497],'K|SO4':[0.04995,0.7793,0,0],'Mg|SO4':[0.2210,3.343,-37.23,0.0250]
 };
-const PITZ='Pitzer osmotic coefficient, 25 °C';
+const PITZ='Pitzer, 25 °C';
 const C=[
 {id:'NaCl',name:'NaCl',group:'Salts',type:'salt',ions:{Na:1,Cl:1},forms:[['',58.44]],V:16.6,maxM:6,note:PITZ},
 {id:'KCl',name:'KCl',group:'Salts',type:'salt',ions:{K:1,Cl:1},forms:[['',74.55]],V:26.8,maxM:4.5,note:PITZ},
@@ -217,13 +240,13 @@ const C=[
 {id:'Tris',name:'Tris, titrated with HCl',group:'Buffers at the set pH',type:'buffer',pKa:8.07,zHA:1,zA:0,HA:'TrisH',A:null,counter:'Cl',perHA:1,perA:0,forms:[['base',121.14]],V:82.5,maxM:1,note:'pKa 8.07 at 25 °C'},
 {id:'NaPi',name:'Sodium phosphate buffer',group:'Buffers at the set pH',type:'buffer',pKa:7.198,zHA:-1,zA:-2,HA:'H2PO4',A:'HPO4',counter:'Na',perHA:1,perA:2,forms:[['total phosphate',0]],V:15,maxM:1,note:'Total phosphate; pKa₂ 7.20, ionic-strength corrected'},
 {id:'KPi',name:'Potassium phosphate buffer',group:'Buffers at the set pH',type:'buffer',pKa:7.198,zHA:-1,zA:-2,HA:'H2PO4',A:'HPO4',counter:'K',perHA:1,perA:2,forms:[['total phosphate',0]],V:30,maxM:1,note:'Total phosphate; pKa₂ 7.20, ionic-strength corrected'},
-{id:'glucose',name:'Glucose',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.glucose,m),forms:[['anhydrous',180.16],['monohydrate',198.17]],V:112.0,maxM:3,note:'Tabulated osmotic coefficient, 25 °C trend'},
-{id:'sucrose',name:'Sucrose',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.sucrose,m),forms:[['',342.30]],V:211.3,maxM:3,note:'Tabulated osmotic coefficient, 25 °C'},
-{id:'trehalose',name:'Trehalose',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.08*m+0.012*m*m,forms:[['anhydrous',342.30],['dihydrate',378.33]],V:207.0,maxM:1.5,note:'Approximate osmotic coefficient'},
-{id:'sorbitol',name:'Sorbitol',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.030*m,forms:[['',182.17]],V:119.4,maxM:3,note:'Approximate osmotic coefficient'},
-{id:'mannitol',name:'Mannitol',group:'Sugars and polyols',type:'neutral',phi:m=>1+0.015*m,forms:[['',182.17]],V:119.7,maxM:1,note:'Approximate osmotic coefficient'},
-{id:'glycerol',name:'Glycerol',group:'Sugars and polyols',type:'neutral',phi:m=>tabPhi(PHI_DATA.glycerol,m),forms:[['',92.09]],density:1.261,V:71.0,maxM:5,note:'Tabulated osmotic coefficient, 25 °C'},
-{id:'urea',name:'Urea',group:'Other small molecules',type:'neutral',phi:m=>tabPhi(PHI_DATA.urea,m),forms:[['',60.06]],V:44.2,maxM:5,note:'Tabulated osmotic coefficient, 25 °C'},
+{id:'glucose',name:'Glucose',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.glucose),forms:[['anhydrous',180.16],['monohydrate',198.17]],V:112.0,maxM:3,note:'Norrish water-activity model; K=2.25 (Chirife & Fontan, 1980)'},
+{id:'sucrose',name:'Sucrose',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.sucrose),forms:[['',342.30]],V:211.3,maxM:3,note:'Norrish water-activity model; K=6.47 (Chirife & Fontan, 1980)'},
+{id:'trehalose',name:'Trehalose',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.sucrose),forms:[['anhydrous',342.30],['dihydrate',378.33]],V:207.0,maxM:1.5,note:'Norrish model using sucrose K; trehalose reported to have nearly identical a_w lowering at equal concentration (Galmarini et al., 2008)'},
+{id:'sorbitol',name:'Sorbitol',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.sorbitol),forms:[['',182.17]],V:119.4,maxM:3,note:'Norrish water-activity model; K=1.65 (Chirife & Fontan, 1980)'},
+{id:'mannitol',name:'Mannitol',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.mannitol),forms:[['',182.17]],V:119.7,maxM:1,note:'Norrish water-activity model; K=0.906 (Chirife & Fontan, 1980)'},
+{id:'glycerol',name:'Glycerol',group:'Sugars and polyols',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.glycerol),forms:[['',92.09]],density:1.261,V:71.0,maxM:5,note:'Norrish water-activity model; K=1.16 (Chirife & Fontan, 1980)'},
+{id:'urea',name:'Urea',group:'Other small molecules',type:'neutral',phi:m=>norrishPhi(m,NORRISH_K.urea),forms:[['',60.06]],V:44.2,maxM:6,note:'Norrish water-activity model; K=-2.02 (Chirife & Fontan, 1980)'},
 {id:'DMSO',name:'DMSO',group:'Other small molecules',type:'neutral',phi:m=>1-0.03*m,forms:[['',78.13]],density:1.100,V:71.0,maxM:3,note:'Rough osmotic coefficient'},
 {id:'ethanol',name:'Ethanol',group:'Other small molecules',type:'neutral',phi:m=>1-0.045*m,forms:[['',46.07]],density:0.789,V:55.1,maxM:3,note:'Rough osmotic coefficient'},
 ...[[400,3.5e-3],[1000,3.5e-3],[3350,3.0e-3],[6000,2.9e-3],[8000,2.8e-3],[20000,2.4e-3]].map(([M,A2])=>({id:'PEG'+M,name:'PEG '+M,group:'Polymers',type:'polymer',Mn:M,A2,A3:3.0e-3,vbar:0.835,forms:[['',M]],maxW:0.4,note:'Virial estimate, ±20–30%'}))
@@ -242,7 +265,7 @@ const PRESETS=[
 ];
 
 let rows=[{id:'NaCl',val:150,unit:'mM',form:0}];
-let st={pH:7.4,adj:'sucrose',adjForm:0,ref:300,delta:0,measured:'',vol:1,stocks:{}};
+let st={pH:7.4,adj:'sucrose',adjForm:0,ref:300,delta:0,measured:'',vol:1,stocks:{},corr:null};
 try{const s=JSON.parse(localStorage.getItem('osmcalc-v1')||'null');if(s&&Array.isArray(s.rows)&&s.st){rows=s.rows.filter(r=>BY[r.id]);st=Object.assign(st,s.st);}}catch(e){}
 if(!st.stocks)st.stocks={};
 const DEFAULT_STOCK={NaCl:[4.5,'M'],KCl:[1,'M'],LiCl:[1,'M'],NH4Cl:[1,'M'],CaCl2:[100,'mM'],MgCl2:[1,'M'],NaNO3:[1,'M'],KNO3:[1,'M'],NaAc:[3,'M'],KAc:[1,'M'],NaHCO3:[1,'M'],KHCO3:[1,'M'],Na2SO4:[1,'M'],K2SO4:[0.5,'M'],MgSO4:[1,'M'],NaOH:[1,'M'],Na2HPO4:[0.2,'M'],NaH2PO4:[1,'M'],KH2PO4:[1,'M'],K2HPO4:[1,'M'],HEPES:[1,'M'],MOPS:[1,'M'],MES:[0.5,'M'],Tris:[1,'M'],NaPi:[0.2,'M'],KPi:[0.2,'M'],glucose:[1,'M'],sucrose:[1,'M'],trehalose:[1,'M'],sorbitol:[1,'M'],mannitol:[0.5,'M'],glycerol:['','M'],urea:[8,'M'],DMSO:['','M'],ethanol:['','M']};
@@ -303,7 +326,7 @@ function compute(items,pH){
  else if(divalent>5e-4&&phos>5e-4&&(ions.Mg||0)>2e-3)warns.push('Magnesium with phosphate can precipitate at higher concentrations.');
  if(P.I>3)warns.push('Ionic strength above 3 mol/kg; expect larger errors.');
   const neutralM=per.filter(p=>p.c.type==='neutral').reduce((a,p)=>a+p.m,0);
-  if(neutralM>0.5&&P.I>0.01)warns.push('Concentrated neutral solute + electrolyte mixture: specific salt–neutral interaction parameters are not available for all pairs, so mixture error can exceed the binary-solution error.');
+  if(neutralM>0.5&&P.I>0.01)warns.push('Concentrated neutral-solute + electrolyte mixture: specific salt–neutral cross-interaction terms are not included unless published parameters are available, so mixture error can exceed the binary-solution error.');
  return {osm:total*1000,osmL:total*w*1000,ideal:ideal*1000,I:P.I,Imolar:P.I*w,w,per,warns,phiMix};}
 
 function itemsFromRows(extra){const items=rows.map(r=>({c:BY[r.id],amt:toAmount(r),r}));if(extra){const ex=items.find(it=>it.c.id===extra.id);if(ex)ex.amt+=extra.amt;else items.push({c:BY[extra.id],amt:extra.amt,adj:true});}return items;}
@@ -336,6 +359,36 @@ function addText(c,amt,form,V){if(!hasStock(c))return {text:V>0?massText(c,amt,f
  if(sa<amt)return {text:'stock too dilute',vol:null,err:true};
  const vol=amt/sa*V;return {text:volFmt(vol),vol};}
 function needsForm(c,unitA,stockUnit,stock){return c.forms.length>1&&(!(stock>0)||['gL','pct'].includes(stockUnit)||['gL','pct'].includes(unitA));}
+
+// Iterative post-measurement correction. Amounts are stored in mmol; because M × mL = mmol,
+// concentration in M is simply amount_mmol / volume_mL. Every non-adjuster component is
+// treated as a fixed background component and restored to its starting concentration after
+// each correction. A new osmometer result recalibrates the model locally for that cycle.
+function corrPreparedState(){
+ const S=solve(),V=parseFloat(st.vol)||0;if(!(V>0))return {err:'Enter a final volume before starting the correction workflow.'};
+ const useFinal=S.status==='ok'&&S.x>0,items=itemsFromRows(useFinal?{id:st.adj,amt:S.x}:null),amounts={},forms={};
+ for(const it of items){if(!(it.amt>0))continue;amounts[it.c.id]=(amounts[it.c.id]||0)+it.amt*V;}
+ rows.forEach(r=>{forms[r.id]=r.form||0;});forms[st.adj]=st.adjForm||0;
+ const fixed={};for(const id in amounts)if(id!==st.adj)fixed[id]=amounts[id]/V;
+ return {active:true,adj:st.adj,volume:V,amounts,forms,fixed,sampleUL:50,target:S.target>0?S.target:(parseFloat(st.ref)||0),measured:'',awaitingMeasurement:false,pending:null,history:[],cycle:0};
+}
+function corrItems(c){const a=[];if(!c||!(c.volume>0))return a;for(const id in c.amounts){if(!BY[id])continue;const M=c.amounts[id]/c.volume;if(M>0)a.push({c:BY[id],amt:M});}return a;}
+function corrModel(c){return compute(corrItems(c),st.pH);}
+function corrStockM(id){const comp=BY[id],sk=stockOf(id),v=parseFloat(sk.val);if(!(v>0))return NaN;const a=amountOf(comp,v,sk.unit,(st.corr&&st.corr.forms&&st.corr.forms[id])||0);return a>0?a:NaN;}
+function corrBackgroundPlan(c){let q=0;const stocks={};for(const id in c.fixed){const ci=c.fixed[id],si=corrStockM(id);if(!(si>ci))return {err:'A liquid stock more concentrated than the fixed '+BY[id].name+' concentration is required for iterative correction.'};stocks[id]=si;q+=ci/si;}if(q>=0.98)return {err:'The fixed-component stocks occupy too much of the correction volume. Use more concentrated stocks.'};return {q,stocks};}
+function corrCandidateRaise(c,xAdj,bg){const sa=corrStockM(c.adj);if(!(sa>0))return null;const dV=xAdj/(1-bg.q),V=c.volume+dV,amounts=Object.assign({},c.amounts),adds={};amounts[c.adj]=(amounts[c.adj]||0)+sa*xAdj;adds[c.adj]=xAdj;for(const id in c.fixed){const x=c.fixed[id]*dV/bg.stocks[id];amounts[id]=(amounts[id]||0)+bg.stocks[id]*x;adds[id]=x;}return {volume:V,amounts,adds,water:0};}
+function corrCandidateDilute(c,dV,bg){const V=c.volume+dV,amounts=Object.assign({},c.amounts),adds={};let used=0;for(const id in c.fixed){const x=c.fixed[id]*dV/bg.stocks[id];amounts[id]=(amounts[id]||0)+bg.stocks[id]*x;adds[id]=x;used+=x;}return {volume:V,amounts,adds,water:Math.max(0,dV-used)};}
+function corrEvalCandidate(c,can,offset){const tmp=Object.assign({},c,{volume:can.volume,amounts:can.amounts});return corrModel(tmp).osm+offset;}
+function corrSolve(){const c=st.corr;if(!c||!c.active)return {err:'Start the correction workflow first.'};if(!c.awaitingMeasurement)return {err:'Remove the test sample first.'};const meas=parseFloat(c.measured),target=parseFloat(c.target);if(!(meas>0)||!(target>0))return {err:'Enter the measured osmolality and target.'};const cur=corrModel(c),offset=meas-cur.osm,bg=corrBackgroundPlan(c);if(bg.err)return bg;const tol=0.5;if(Math.abs(meas-target)<=tol)return {status:'at',current:cur,offset,pred:meas};
+ if(meas<target){const sa=corrStockM(c.adj);if(!(sa>0))return {err:'A liquid '+BY[c.adj].name+' stock is required to raise osmolality while keeping the background concentration constant.'};let lo=0,hi=Math.max(0.001,c.volume*0.02),cand=corrCandidateRaise(c,hi,bg);let val=corrEvalCandidate(c,cand,offset),guard=0;while(val<target&&hi<c.volume*20&&guard++<30){hi*=2;cand=corrCandidateRaise(c,hi,bg);val=corrEvalCandidate(c,cand,offset);}if(val<target)return {err:'Target could not be reached with the current '+BY[c.adj].name+' stock within a practical addition range.'};for(let k=0;k<60;k++){const mid=(lo+hi)/2,cm=corrCandidateRaise(c,mid,bg);if(corrEvalCandidate(c,cm,offset)<target)lo=mid;else hi=mid;}const x=(lo+hi)/2,can=corrCandidateRaise(c,x,bg),pred=corrEvalCandidate(c,can,offset);return {status:'raise',current:cur,offset,pred,can};}
+ let lo=0,hi=Math.max(0.001,c.volume*0.05),cand=corrCandidateDilute(c,hi,bg),val=corrEvalCandidate(c,cand,offset),guard=0;while(val>target&&hi<c.volume*100&&guard++<35){hi*=2;cand=corrCandidateDilute(c,hi,bg);val=corrEvalCandidate(c,cand,offset);}if(val>target)return {err:'Target could not be reached by matched dilution within a practical volume range.'};for(let k=0;k<60;k++){const mid=(lo+hi)/2,cm=corrCandidateDilute(c,mid,bg);if(corrEvalCandidate(c,cm,offset)>target)lo=mid;else hi=mid;}const dV=(lo+hi)/2,can=corrCandidateDilute(c,dV,bg),pred=corrEvalCandidate(c,can,offset);return {status:'dilute',current:cur,offset,pred,can};}
+function corrStart(){const c=corrPreparedState();if(c.err){alert(c.err);return;}st.corr=c;save();renderCorrection();}
+function corrTakeSample(){const c=st.corr;if(!c||!c.active)return false;if(c.awaitingMeasurement||c.pending)return false;const uL=parseFloat(c.sampleUL);if(!(uL>0))return false;const dV=uL/1000;if(dV>=c.volume)return false;const f=(c.volume-dV)/c.volume;for(const id in c.amounts)c.amounts[id]*=f;c.volume-=dV;c.awaitingMeasurement=true;c.pending=null;c.cycle=(c.cycle||0)+1;c.history.push({cycle:c.cycle,sampleUL:uL,volumeAfter:c.volume,measured:null,correction:null});return true;}
+function corrCalculate(){const c=st.corr;if(!c)return;const r=corrSolve();if(r.err){c.pending={err:r.err};save();renderCorrection();return;}c.pending=r;const h=c.history[c.history.length-1];if(h){h.measured=parseFloat(c.measured)||null;h.predicted=r.pred||null;}if(r.status==='at')c.awaitingMeasurement=false;save();renderCorrection();}
+function corrAdjust(){const c=st.corr;if(!c||!c.active)return;const meas=parseFloat(c.measured);if(!(meas>0)){alert('Enter the measured osmolality first.');return;}if(c.pending&&c.pending.status!=='at')return;const measuredText=c.measured;c.pending=null;c.awaitingMeasurement=false;if(!corrTakeSample()){alert('The sample volume must be greater than zero and smaller than the remaining solution volume.');return;}c.measured=measuredText;corrCalculate();}
+function corrApply(){const c=st.corr;if(!c||!c.pending||!c.pending.can)return;const r=c.pending,can=r.can;c.volume=can.volume;c.amounts=can.amounts;c.awaitingMeasurement=false;const h=c.history[c.history.length-1];if(h)h.correction={status:r.status,adds:can.adds,water:can.water,newVolume:can.volume,pred:r.pred};c.pending=null;c.measured='';save();renderCorrection();}
+function corrAdditionsHTML(r){if(!r||!r.can)return '';const parts=[];for(const id in r.can.adds){const v=r.can.adds[id];if(v>1e-9)parts.push('<tr><td>'+BY[id].name+'</td><td>'+volFmt(v)+'</td><td>of '+stockLabel(BY[id])+'</td></tr>');}if(r.can.water>1e-9)parts.push('<tr><td>Water</td><td>'+volFmt(r.can.water)+'</td><td>matched dilution balance</td></tr>');return '<table><thead><tr><th>Add</th><th>Volume</th><th>Source</th></tr></thead><tbody>'+parts.join('')+'</tbody></table>'; }
+function renderCorrection(){const c=st.corr,off=$('corrInactive'),on=$('corrActive');if(!off||!on)return;off.hidden=!!(c&&c.active);on.hidden=!(c&&c.active);if(!c||!c.active)return;const samp=$('corrSample'),tar=$('corrTarget'),me=$('corrMeasured');if(document.activeElement!==samp)samp.value=c.sampleUL;if(document.activeElement!==tar)tar.value=c.target;if(document.activeElement!==me)me.value=c.measured||'';const model=corrModel(c),adj=BY[c.adj],state=$('corrState');let html='<p class="main">Cycle '+(c.cycle||0)+' · '+vText(c.volume)+' tracked volume · adjusting with '+adj.name+'</p><p>Current modeled osmolality: '+fmt(model.osm,1)+' mOsm/kg. Background concentrations are held at their starting values.</p>';if(c.awaitingMeasurement)html+='<p><b>'+fmt(c.sampleUL,0)+' µL has been accounted for as the measured sample.</b> The recommendation below applies to the remaining '+vText(c.volume)+'.</p>';else html+='<p>Enter the osmometer result from your '+fmt(c.sampleUL,0)+' µL sample and press <b>Adjust</b>. That same click subtracts the sample from the tracked volume.</p>';if(c.pending){html+='<div class="corrresult">';if(c.pending.err)html+='<p class="main">'+c.pending.err+'</p>';else if(c.pending.status==='at')html+='<p class="main">Measured value is already within 0.5 mOsm/kg of the target. No addition is needed; the sample removal has still been recorded.</p>';else{html+='<p class="main">Suggested correction → predicted '+fmt(c.pending.pred,1)+' mOsm/kg</p>'+corrAdditionsHTML(c.pending)+'<p>New total volume after applying: '+vText(c.pending.can.volume)+'.</p>';}html+='</div>';}state.innerHTML=html;$('corrAdjust').disabled=c.awaitingMeasurement||(c.pending&&c.pending.status!=='at');$('corrApply').disabled=!(c.pending&&c.pending.can);const hist=c.history||[];if(!hist.length){$('corrHistory').innerHTML='';return;}let hh='<table><thead><tr><th>Cycle</th><th>Sample</th><th>Measured</th><th>Correction</th><th>Volume after</th></tr></thead><tbody>';for(const h of hist){let corr='–',v=h.volumeAfter;if(h.correction){const a=[];for(const id in h.correction.adds)if(h.correction.adds[id]>1e-9)a.push(volFmt(h.correction.adds[id])+' '+BY[id].name);if(h.correction.water>1e-9)a.push(volFmt(h.correction.water)+' water');corr=a.join(' + ');v=h.correction.newVolume;}hh+='<tr><td>'+h.cycle+'</td><td>'+fmt(h.sampleUL,0)+' µL</td><td>'+(h.measured?fmt(h.measured,1)+' mOsm/kg':'–')+'</td><td>'+corr+'</td><td>'+vText(v)+'</td></tr>';}$('corrHistory').innerHTML=hh+'</tbody></table>'; }
 
 let rowsEl=null;const $=id=>document.getElementById(id);
 const lname=c=>['Sugars and polyols','Other small molecules'].includes(c.group)&&c.id!=='DMSO'?c.name.toLowerCase():c.name;
@@ -403,7 +456,7 @@ function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.a
  res.per.forEach((p,i)=>{if(!(p.amt>0))return;const added=i>=rows.length;bh+='<tr'+(added?' class="adj"':'')+'><td>'+p.c.name+(added?' (top-up)':'')+(p.c.type==='buffer'?' ('+fmt(100*p.f,0)+'% base form)':'')+'</td><td>'+fmt(p.m*1000,p.c.type==='polymer'?2:1)+' mmol/kg</td><td>'+fmt(p.ideal*1000,1)+'</td><td>'+fmt(p.contrib*1000,1)+'</td><td>'+p.c.note+'</td></tr>';});
  bh+='</tbody><tfoot><tr><td>Total</td><td></td><td>'+fmt(res.ideal,1)+' mOsm/L</td><td>'+fmt(res.osm,1)+' mOsm/kg</td><td>'+(off?'plus measured offset '+fmt(off,1):'')+'</td></tr></tfoot>';
  $('breakdown').innerHTML=bh;
- window._last={S,adj,V};if(figsOpen())drawDynamicFigs();}
+ window._last={S,adj,V};if(figsOpen())drawDynamicFigs();renderCorrection();}
 
 function recipeText(){const {S,adj,V}=window._last;const lines=[];lines.push('Solution'+(V>0?', '+vText(V)+' final':'')+(rows.some(r=>BY[r.id].type==='buffer')?', buffers at pH '+st.pH:''));
  let volSum=0,anySolid=false;const add=(c,amt,form,label)=>{const ad=addText(c,amt,form,V);if(ad.vol)volSum+=ad.vol;if(ad.solid)anySolid=true;lines.push(label+': '+concLabel(c,amt)+(V>0&&!ad.err?', '+(ad.solid?'weigh '+ad.text:ad.text+' of '+stockLabel(c)+' stock'):''));};
@@ -496,6 +549,10 @@ function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(fig
  if(st.measured!=='')$('calib').open=true;
  $('addRow').onclick=()=>{rows.push({id:'NaCl',val:'',unit:'mM',form:0});buildRows();update();const all=rowsEl.querySelectorAll('.c-comp');if(all.length)all[all.length-1].focus();};
  $('copy').onclick=async()=>{const t=recipeText(),msg=$('copied');try{await navigator.clipboard.writeText(t);msg.textContent='Copied.';}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');msg.textContent='Copied.';}catch(_){msg.textContent='Copy failed. Select the table instead.';}ta.remove();}setTimeout(()=>msg.textContent='',2500);};
+ $('corrStart').onclick=corrStart;$('corrRestart').onclick=corrStart;$('corrAdjust').onclick=corrAdjust;$('corrApply').onclick=corrApply;
+ $('corrSample').oninput=e=>{if(st.corr){st.corr.sampleUL=e.target.value;save();renderCorrection();}};
+ $('corrTarget').oninput=e=>{if(st.corr){st.corr.target=e.target.value;st.corr.pending=null;save();renderCorrection();}};
+ $('corrMeasured').oninput=e=>{if(st.corr){st.corr.measured=e.target.value;st.corr.pending=null;save();renderCorrection();}};
  buildRows();update();}
 if(typeof document!=='undefined')boot();
 </script>
