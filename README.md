@@ -74,3 +74,9 @@ The correction workflow requires liquid stocks that are more concentrated than t
 - Chirife, J., Ferro Fontán, C. & Benmergui, E. A. (1980). *The prediction of water activity in aqueous solutions in connection with intermediate moisture foods. IV. a_w prediction in aqueous non-electrolyte solutions.* J. Food Technol. 15, 59–70. DOI: 10.1111/j.1365-2621.1980.tb00919.x. Published Norrish constants used here: glucose 2.25, sucrose 6.47, sorbitol 1.65, mannitol 0.906, glycerol 1.16, urea -2.02.
 - Galmarini, M. V., Chirife, J., Zamora, M. C. & Pérez, A. (2008). *Determination and correlation of the water activity of unsaturated, supersaturated and saturated trehalose solutions.* LWT 41, 628–631. DOI: 10.1016/j.lwt.2007.04.007.
 - Robinson, R. A. & Stokes, R. H. *Electrolyte Solutions*, 2nd ed. Butterworths.
+
+## Sugar-stock estimation timing
+
+For glucose, sucrose and trehalose, the stock concentration is estimated from the measured response to a previously applied sugar-stock correction. A correction made in cycle *n* therefore becomes identifiable when the measurement for cycle *n+1* is entered. The estimate is displayed on the cycle *n+1* row, because that measurement generated the estimate. If an eligible prior cycle was missed, the app now backfills the estimate from the stored adjacent-cycle history.
+
+If no estimate can be made, the history no longer silently treats an eligible sugar correction as complete: it shows that the correction is pending the next measurement. Salts, buffers and other stocks remain trusted and are never fitted.
