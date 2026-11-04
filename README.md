@@ -1,4 +1,4 @@
-# Osmolality calculator
+# OSMOLATOR
 
 A single-page tool for making solutions to a target osmolality from stock solutions. It runs entirely in the browser, works on desktop, iPad and phone, and stores nothing: every reload starts from the default solution (10 mM NaCl, adjusted with glucose to 900 mOsm/kg in 10 mL).
 
