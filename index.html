@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#EFF3F2;--surface:#FFFFFF;--ink:#14232A;--ink-2:#4A5A61;--ink-3:#6E7E85;--line:#D2DBDA;--accent:#0D6E6C;--accent-ink:#FFFFFF;--warn:#8A5200;--warn-bg:#FFF4DF;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#6250d6;--grid:#E3E9E8;--axis:#B9C4C3;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0E1517;--surface:#162024;--ink:#E3EBEC;--ink-2:#A5B4B8;--ink-3:#7F8F94;--line:#29373B;--accent:#4CC3BE;--accent-ink:#06201F;--warn:#F2B45A;--warn-bg:#2C2312;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#9085e9;--grid:#243034;--axis:#3A494D;color-scheme:dark}}
+:root{--bg:#EFF3F2;--surface:#FFFFFF;--ink:#14232A;--ink-2:#4A5A61;--ink-3:#6E7E85;--line:#D2DBDA;--accent:#0D6E6C;--accent-ink:#FFFFFF;--warn:#8A5200;--warn-bg:#FFF4DF;--good:#1C7F45;--good-bg:#E6F4EB;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#6250d6;--grid:#E3E9E8;--axis:#B9C4C3;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1517;--surface:#162024;--ink:#E3EBEC;--ink-2:#A5B4B8;--ink-3:#7F8F94;--line:#29373B;--accent:#4CC3BE;--accent-ink:#06201F;--warn:#F2B45A;--warn-bg:#2C2312;--good:#4CC38A;--good-bg:#10261B;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#9085e9;--grid:#243034;--axis:#3A494D;color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
@@ -92,12 +92,18 @@ tfoot td{font-weight:600;border-bottom:none}
 .corrbuttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .corrresult{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .corrhistory{margin-top:12px;overflow-x:auto}
-.corrlearn{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.corrlearn h3{margin:0 0 3px}
-.corrlearn .chart{max-width:620px;margin-top:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--good);margin-right:7px}
+tr.hit td{color:var(--good);font-weight:500}
+.corrstate.hit{border-color:var(--good);background:var(--good-bg)}
+.corrstate.hit .main{color:var(--good)}
+.check .fields{margin-top:8px}
+.checkres{margin:8px 0 0;font-size:14px;color:var(--ink-2)}
+.tick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin-top:8px}
+.tick input{width:auto;margin:0}
+#scheck{margin-top:10px}
 .figgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px 32px;margin:16px 0 8px}
 .fig h4{font-size:15px;font-weight:600;margin:0 0 2px}
-.more .fig p.cap{font-size:13px;color:var(--ink-2);margin:0 0 6px;max-width:none;min-height:2.9em}
+.more .fig p.cap{font-size:13px;color:var(--ink-2);margin:0 0 6px;max-width:none}
 .flg{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:12.5px;color:var(--ink-2);margin:0 0 2px}
 .flg span{display:inline-flex;align-items:center;gap:5px}
 .chart{position:relative}
@@ -109,7 +115,6 @@ tfoot td{font-weight:600;border-bottom:none}
 <div class="page">
 <header>
 <h1>Osmolality calculator</h1>
-<p>Enter your components and stocks, set a target, and get the volumes to pipette. Salts and sugars use non-ideal osmotic coefficients, so 150 mM NaCl comes out near 279 mOsm/kg rather than 300.</p>
 </header>
 <div class="layout">
 <main>
@@ -128,48 +133,49 @@ tfoot td{font-weight:600;border-bottom:none}
 <label class="field">Final volume (mL)<input type="number" id="vol" step="any" min="0"></label>
 <label class="field" id="adjFormWrap" hidden>Form you weigh<select id="adjForm"></select></label>
 </div>
-<p class="hint" style="margin-top:6px">Target is a reference plus an offset, for example your vesicle interior plus 50.</p>
-<details id="calib"><summary>Calibrate with a measured value</summary>
-<label class="field">Measured osmolality of the components above, before topping up (mOsm/kg)<input type="number" id="measured" step="1"></label>
-<p class="hint">The calculator then models only what you add on top, which removes most of the error from the salts.</p>
+<details id="calib"><summary>Measured base osmolality</summary>
+<label class="field">Components above, before topping up (mOsm/kg)<input type="number" id="measured" step="1"></label>
+</details>
+<details id="scheck" class="check"><summary>Measure top-up stock</summary>
+<div class="fields">
+<label class="field">Dilution factor (×)<input type="number" id="scDil" step="any" min="1"></label>
+<label class="field">Reading 1 (mOsm/kg)<input type="number" id="scM1" step="1" min="0"></label>
+<label class="field">Reading 2 (optional)<input type="number" id="scM2" step="1" min="0"></label>
+</div>
+<p class="checkres" id="scRes"></p>
+<label class="tick"><input type="checkbox" id="scUse">Use measured stock concentration</label>
 </details>
 </section>
 <section id="corrSection">
-<h2>Iterative measured correction</h2>
-<p class="hint">After measuring a sample, enter the result and press Adjust. The app automatically accounts for the sample volume removed from the mix (50 µL by default), then calculates the correction for the remaining solution. All non-adjuster components are kept at their starting concentrations through repeated test–adjust cycles. For glucose, sucrose and trehalose, repeated measurements can also refine the effective sugar-stock concentration; salts and all other stocks remain trusted at their entered values.</p>
+<h2>Correction</h2>
 <div id="corrInactive" class="corrstate">
-<p class="main">Start from the currently calculated prepared mix.</p>
-<div class="corrbuttons"><button type="button" id="corrStart">Start correction workflow</button></div>
+<div class="corrbuttons"><button type="button" id="corrStart">Start correction</button></div>
 </div>
 <div id="corrActive" hidden>
 <div class="fields">
-<label class="field">Sample removed per test (µL)<input type="number" id="corrSample" step="1" min="0"></label>
 <label class="field">Target (mOsm/kg)<input type="number" id="corrTarget" step="1" min="0"></label>
-<label class="field">Measured result (mOsm/kg)<input type="number" id="corrMeasured" step="1" min="0" placeholder="enter osmometer result"></label>
+<label class="field">Tolerance ± (mOsm/kg)<input type="number" id="corrTol" step="1" min="0"></label>
+<label class="field">Sample per reading (µL)<input type="number" id="corrSample" step="1" min="0"></label>
+<label class="field">Reading 1 (mOsm/kg)<input type="number" id="corrMeasured" step="1" min="0"></label>
+<label class="field">Reading 2 (optional)<input type="number" id="corrMeasured2" step="1" min="0"></label>
 </div>
 <div class="corrstate" id="corrState"></div>
 <div class="corrbuttons">
-<button type="button" id="corrAdjust">Adjust (sample already removed)</button>
-<button type="button" id="corrApply">Apply suggested addition</button>
-<button type="button" id="corrRestart">Restart from current recipe</button>
+<button type="button" id="corrAdjust">Adjust</button>
+<button type="button" id="corrApply">Apply</button>
+<button type="button" id="corrRestart">Restart</button>
 </div>
 <div class="corrhistory" id="corrHistory"></div>
-<div class="corrlearn" id="corrLearn"><h3>Sugar stock estimate</h3><p class="hint" id="corrLearnText"></p><div class="chart" id="corrStockChart"></div></div>
 </div>
 </section>
 <details class="more"><summary>Calculation details</summary>
 <div class="tablewrap"><table id="breakdown"></table></div>
-<p>Ideal is the textbook count of particles per litre. Predicted is per kg of water, which is what a freezing-point osmometer reports.</p>
-<p>Salts use the Pitzer ion-interaction model at 25 °C with published binary ion-pair parameters. Same-charge and ternary mixed-electrolyte parameters are not invented when unavailable; mixtures that need missing interaction terms are flagged.</p>
-<p>Glucose, sucrose, sorbitol, mannitol, glycerol and urea are calculated from the published Norrish water-activity equation and published constants. Trehalose uses the sucrose Norrish constant because published measurements report nearly identical water-activity lowering at equal concentration. DMSO and ethanol retain the original approximate coefficients. PEG retains the original virial estimate and is explicitly marked approximate.</p>
-<p>Concentrations per litre are converted to per kg of water using apparent molar volumes. Buffers are split into acid and base forms at the pH you set, with ionic-strength-corrected pKa values at 25 °C. Pipetting volumes assume stocks and water add up to the final volume. Specific salt–neutral cross-interactions are not added without published parameters; concentrated mixed solutions are therefore flagged. Temperature is fixed at 25 °C.</p>
 </details>
 <details class="more" id="figs"><summary>Figures</summary>
-<p>The model behind the numbers. The last three panels follow your current solution; hover a chart to read values.</p>
 <div class="figgrid">
-<div class="fig"><h4>Salts fall below ideal</h4><p class="cap">Osmotic coefficient from the Pitzer model. Ideal behaviour is φ = 1.</p><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
-<div class="fig"><h4>Neutral-solute non-ideality</h4><p class="cap">Osmolality from published Norrish water-activity models where available; DMSO and ethanol remain legacy approximations.</p><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
-<div class="fig"><h4>PEG climbs steeply</h4><p class="cap">Virial estimate on a log scale. Large PEGs add little per molecule but a lot at high %.</p><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
+<div class="fig"><h4>Salts fall below ideal</h4><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
+<div class="fig"><h4>Neutral-solute non-ideality</h4><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
+<div class="fig"><h4>PEG climbs steeply</h4><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
 <div class="fig"><h4>Buffers change form with pH</h4><p class="cap" id="cap4"></p><div class="flg" id="lg4"></div><div class="chart" id="fig4"></div></div>
 <div class="fig"><h4>Screening length shrinks with salt</h4><p class="cap" id="cap5"></p><div class="flg" id="lg5"></div><div class="chart" id="fig5"></div></div>
 <div class="fig"><h4>How the top-up is solved</h4><p class="cap" id="cap6"></p><div class="flg" id="lg6"></div><div class="chart" id="fig6"></div></div>
@@ -177,15 +183,12 @@ tfoot td{font-weight:600;border-bottom:none}
 </details>
 </main>
 <aside class="panel" aria-live="polite">
-<div class="label" id="bigLabel"></div>
+<div class="label" id="bigLabel">Target</div>
 <div class="big" id="big"></div>
-<p class="sub" id="bigSub"></p>
-<div class="answer" id="answer"></div>
-<h3 id="recipeHead">To pipette</h3>
+<h3 id="recipeHead">Mix</h3>
 <table id="recipe"></table>
 <div class="tools"><button type="button" id="copy">Copy recipe</button><span id="copied" aria-live="polite"></span></div>
 <div class="warnings" id="warnings"></div>
-<dl class="stats" id="stats"></dl>
 </aside>
 </div>
 </div>
@@ -257,7 +260,6 @@ const C=[
 ];
 const BY={};C.forEach(c=>BY[c.id]=c);
 const ADJUSTERS=['glucose','sucrose','trehalose','sorbitol','mannitol','glycerol','NaCl','KCl'];
-const LEARNABLE_SUGARS=new Set(['glucose','sucrose','trehalose']);
 const UNITS_MOL=[['mM','mM'],['M','M'],['uM','µM'],['gL','g/L'],['pct','% w/v']];
 const UNITS_POLY=[['pct','% w/v'],['gL','g/L'],['mM','mM']];
 const PRESETS=[
@@ -276,8 +278,16 @@ if(!st.stocks)st.stocks={};
 const DEFAULT_STOCK={NaCl:[4.5,'M'],KCl:[1,'M'],LiCl:[1,'M'],NH4Cl:[1,'M'],CaCl2:[100,'mM'],MgCl2:[1,'M'],NaNO3:[1,'M'],KNO3:[1,'M'],NaAc:[3,'M'],KAc:[1,'M'],NaHCO3:[1,'M'],KHCO3:[1,'M'],Na2SO4:[1,'M'],K2SO4:[0.5,'M'],MgSO4:[1,'M'],NaOH:[1,'M'],Na2HPO4:[0.2,'M'],NaH2PO4:[1,'M'],KH2PO4:[1,'M'],K2HPO4:[1,'M'],HEPES:[1,'M'],MOPS:[1,'M'],MES:[0.5,'M'],Tris:[1,'M'],NaPi:[0.2,'M'],KPi:[0.2,'M'],glucose:[1,'M'],sucrose:[1,'M'],trehalose:[1,'M'],sorbitol:[1,'M'],mannitol:[0.5,'M'],glycerol:['','M'],urea:[8,'M'],DMSO:['','M'],ethanol:['','M']};
 C.filter(c=>c.type==='polymer').forEach(c=>DEFAULT_STOCK[c.id]=[50,'pct']);
 function stockUnitsFor(c){if(c.type==='polymer')return [['pct','% w/v'],['gL','g/L'],['mM','mM']];if(c.type==='buffer'&&mw(c,0)===0)return [['M','M'],['mM','mM']];return [['M','M'],['mM','mM'],['gL','g/L'],['pct','% w/v']];}
-function stockOf(id){const c=BY[id],s=st.stocks[id]||DEFAULT_STOCK[id]||['','M'];const u=stockUnitsFor(c);return {val:s[0],unit:u.find(x=>x[0]===s[1])?s[1]:u[0][0]};}
+function stockNominal(id){const c=BY[id],s=st.stocks[id]||DEFAULT_STOCK[id]||['','M'];const u=stockUnitsFor(c);return {val:s[0],unit:u.find(x=>x[0]===s[1])?s[1]:u[0][0]};}
 function setStock(id,val,unit){st.stocks[id]=[val,unit];}
+function scState(id){st.scheck=st.scheck||{};if(!st.scheck[id])st.scheck[id]={dil:4,m1:'',m2:'',use:false};return st.scheck[id];}
+function meanReadings(a,b){const v=[a,b].map(parseFloat).filter(x=>x>0);return v.length?v.reduce((p,q)=>p+q,0)/v.length:NaN;}
+const _effCache={};
+function stockFromMeasurement(id,meas,dil){const k=id+'|'+meas+'|'+dil;if(k in _effCache)return _effCache[k];const c=BY[id];if(!c||!(meas>0)||!(dil>=1))return NaN;
+ const f=x=>compute([{c,amt:x/dil}],7.4).osm;let lo=0,hi=1,g=0;while(f(hi)<meas&&g++<12)hi*=2;if(f(hi)<meas)return (_effCache[k]=NaN);
+ for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(f(mid)<meas)lo=mid;else hi=mid;}return (_effCache[k]=(lo+hi)/2);}
+function stockMeasured(id){const sc=st.scheck&&st.scheck[id];return sc?stockFromMeasurement(id,meanReadings(sc.m1,sc.m2),parseFloat(sc.dil)):NaN;}
+function stockOf(id){const sc=st.scheck&&st.scheck[id];if(sc&&sc.use){const e=stockMeasured(id);if(e>0)return {val:+e.toPrecision(4),unit:'M',measured:true};}return stockNominal(id);}
 function save(){try{localStorage.setItem('osmcalc-v1',JSON.stringify({rows,st}));}catch(e){}}
 
 function mw(comp,form){const f=comp.forms[form]||comp.forms[0];return f[1]||0;}
@@ -358,7 +368,7 @@ function formLabel(c,form){const f=c.forms[form]||c.forms[0];return f[0];}
 function volFmt(mL){if(!isFinite(mL))return '–';const uL=mL*1000;if(uL<10)return uL.toFixed(2)+' µL';if(uL<100)return uL.toFixed(1)+' µL';if(uL<1000)return uL.toFixed(0)+' µL';if(mL<10)return mL.toFixed(2)+' mL';return mL.toFixed(1)+' mL';}
 const vText=V=>V<1?sig(V*1000)+' µL':sig(V)+' mL';
 function hasStock(c){const s=stockOf(c.id);return s.val!==''&&parseFloat(s.val)>0;}
-function stockLabel(c){if(!hasStock(c))return c.density?'solid or neat':'solid';const s=stockOf(c.id),u=stockUnitsFor(c).find(x=>x[0]===s.unit);return s.val+' '+(u?u[1]:s.unit);}
+function stockLabel(c){if(!hasStock(c))return c.density?'solid or neat':'solid';const s=stockOf(c.id),u=stockUnitsFor(c).find(x=>x[0]===s.unit);return s.val+' '+(u?u[1]:s.unit)+(s.measured?' measured':'');}
 function addText(c,amt,form,V){if(!hasStock(c))return {text:V>0?massText(c,amt,form,V):'–',vol:null,solid:true};
  const s=stockOf(c.id),sa=amountOf(c,s.val,s.unit,form);if(!(sa>0))return {text:'–',vol:null,err:true};
  if(sa<amt)return {text:'stock too dilute',vol:null,err:true};
@@ -376,70 +386,45 @@ function corrPreparedState(){
  rows.forEach(r=>{forms[r.id]=r.form||0;});forms[st.adj]=st.adjForm||0;
  const fixed={};for(const id in amounts)if(id!==st.adj)fixed[id]=amounts[id]/V;
  const nominalStock=corrStockMRaw(st.adj,forms[st.adj]||0);
- return {active:true,adj:st.adj,volume:V,amounts,forms,fixed,sampleUL:50,target:S.target>0?S.target:(parseFloat(st.ref)||0),measured:'',awaitingMeasurement:false,pending:null,history:[],cycle:0,learnSugar:LEARNABLE_SUGARS.has(st.adj),stockNominal:nominalStock,stockEstimate:nominalStock,stockEstimates:[]};
+ const target=S.target>0?S.target:(parseFloat(st.ref)||0);
+ return {active:true,adj:st.adj,volume:V,amounts,forms,fixed,sampleUL:50,target,tol:Math.max(2,Math.round(0.01*target)),measured:'',r1:'',r2:'',awaitingMeasurement:false,pending:null,history:[],cycle:0,stockNominal:nominalStock};
 }
 function corrItems(c){const a=[];if(!c||!(c.volume>0))return a;for(const id in c.amounts){if(!BY[id])continue;const M=c.amounts[id]/c.volume;if(M>0)a.push({c:BY[id],amt:M});}return a;}
 function corrModel(c){return compute(corrItems(c),st.pH);}
 function corrStockMRaw(id,form){const comp=BY[id],sk=stockOf(id),v=parseFloat(sk.val);if(!(v>0))return NaN;const a=amountOf(comp,v,sk.unit,form||0);return a>0?a:NaN;}
-function corrStockM(id){const c=st.corr;if(c&&c.active&&c.learnSugar&&id===c.adj&&isFinite(c.stockEstimate)&&c.stockEstimate>0)return c.stockEstimate;return corrStockMRaw(id,(c&&c.forms&&c.forms[id])||0);}
+function corrStockM(id){const c=st.corr;return corrStockMRaw(id,(c&&c.forms&&c.forms[id])||0);}
 function corrBackgroundPlan(c){let q=0;const stocks={};for(const id in c.fixed){const ci=c.fixed[id],si=corrStockM(id);if(!(si>ci))return {err:'A liquid stock more concentrated than the fixed '+BY[id].name+' concentration is required for iterative correction.'};stocks[id]=si;q+=ci/si;}if(q>=0.98)return {err:'The fixed-component stocks occupy too much of the correction volume. Use more concentrated stocks.'};return {q,stocks};}
 function corrCandidateRaise(c,xAdj,bg){const sa=corrStockM(c.adj);if(!(sa>0))return null;const dV=xAdj/(1-bg.q),V=c.volume+dV,amounts=Object.assign({},c.amounts),adds={};amounts[c.adj]=(amounts[c.adj]||0)+sa*xAdj;adds[c.adj]=xAdj;for(const id in c.fixed){const x=c.fixed[id]*dV/bg.stocks[id];amounts[id]=(amounts[id]||0)+bg.stocks[id]*x;adds[id]=x;}return {volume:V,amounts,adds,water:0};}
 function corrCandidateDilute(c,dV,bg){const V=c.volume+dV,amounts=Object.assign({},c.amounts),adds={};let used=0;for(const id in c.fixed){const x=c.fixed[id]*dV/bg.stocks[id];amounts[id]=(amounts[id]||0)+bg.stocks[id]*x;adds[id]=x;used+=x;}return {volume:V,amounts,adds,water:Math.max(0,dV-used)};}
 function corrEvalCandidate(c,can,offset){const tmp=Object.assign({},c,{volume:can.volume,amounts:can.amounts});return corrModel(tmp).osm+offset;}
 
-function corrEstimateOneStockResponse(c,h,nextH){
- if(!c||!c.learnSugar||!LEARNABLE_SUGARS.has(c.adj))return null;
- const cr=h&&h.correction;if(!cr||cr.stockEstimated||!cr.beforeState||!(h.measured>0)||!cr.adds||!nextH||!(nextH.measured>0))return null;
- const vAdj=cr.adds[c.adj]||0;if(!(vAdj>1e-9)){cr.stockEstimateReason='No sugar stock was added in this correction.';return null;}
- const before={active:true,adj:c.adj,volume:cr.beforeState.volume,amounts:Object.assign({},cr.beforeState.amounts),forms:c.forms,fixed:c.fixed};
- const baseOsm=corrModel(before).osm;
- const offset=h.measured-baseOsm;
- const targetModelAfter=nextH.measured-offset;
- const nom=(isFinite(c.stockNominal)&&c.stockNominal>0)?c.stockNominal:corrStockMRaw(c.adj,c.forms[c.adj]||0);
- if(!(nom>0)){cr.stockEstimateReason='No valid nominal sugar-stock concentration is available.';return null;}
- function afterAt(stockM){
-  const amounts=Object.assign({},cr.beforeState.amounts);
-  for(const id in cr.adds){const v=cr.adds[id];if(!(v>0))continue;const sm=id===c.adj?stockM:corrStockMRaw(id,c.forms[id]||0);if(sm>0)amounts[id]=(amounts[id]||0)+sm*v;}
-  const tmp={active:true,adj:c.adj,volume:cr.newVolume,amounts,forms:c.forms,fixed:c.fixed};
-  return corrModel(tmp).osm;
- }
- let lo=nom*0.01,hi=nom*10,valLo=afterAt(lo),valHi=afterAt(hi);
- if(!(isFinite(valLo)&&isFinite(valHi)&&isFinite(targetModelAfter))){cr.stockEstimateReason='The response model returned a non-finite value.';return null;}
- if(targetModelAfter<Math.min(valLo,valHi)||targetModelAfter>Math.max(valLo,valHi)){
-  cr.stockEstimateReason='The measured response lies outside the range explainable by 1–1000% of the nominal sugar-stock concentration.';return null;
- }
- const increasing=valHi>=valLo;
- for(let k=0;k<80;k++){const mid=(lo+hi)/2,v=afterAt(mid);if((v<targetModelAfter)===increasing)lo=mid;else hi=mid;}
- const est=(lo+hi)/2;
- const observedDelta=nextH.measured-h.measured;
- const predDelta=afterAt(est)-baseOsm;
- const weight=Math.max(5,Math.min(200,Math.abs(observedDelta)));
- c.stockEstimates=c.stockEstimates||[];
- c.stockEstimates.push({cycle:nextH.cycle,sourceCycle:h.cycle,estimate:est,nominal:nom,observedDelta,predictedDelta:predDelta,weight});
- let sw=0,sx=0;for(const e of c.stockEstimates){if(e.estimate>0&&e.weight>0){sw+=e.weight;sx+=e.estimate*e.weight;}}
- if(sw>0)c.stockEstimate=sx/sw;
- cr.stockEstimated=true;cr.stockEstimate=est;cr.stockBest=c.stockEstimate;cr.stockEstimateReason='Estimated from the next measurement.';
- nextH.stockEstimate=est;nextH.stockBest=c.stockEstimate;nextH.stockEstimateSourceCycle=h.cycle;
- return est;
-}
-function corrUpdateStockEstimates(c){
- if(!c||!c.learnSugar)return;
- const hist=c.history||[];
- for(let i=0;i+1<hist.length;i++)corrEstimateOneStockResponse(c,hist[i],hist[i+1]);
-}
-function corrStockLearningHTML(c){const nominal=c.stockNominal,best=c.stockEstimate,est=c.stockEstimates||[],adj=BY[c.adj];if(!c.learnSugar||!LEARNABLE_SUGARS.has(c.adj))return 'Stock learning is limited to glucose, sucrose and trehalose. '+adj.name+' and all background-component stocks are trusted at the concentrations entered above.';if(!(nominal>0))return 'No liquid '+adj.name+' stock is configured, so its concentration cannot be learned.';if(!est.length)return 'Nominal '+adj.name+' stock: <b>'+sig(nominal)+' M</b>. After the app makes one sugar-stock correction, the following measurement can estimate the effective stock concentration from the observed osmotic response.';return 'Nominal '+adj.name+' stock: <b>'+sig(nominal)+' M</b> · current best estimate: <b>'+sig(best)+' M</b> ('+fmt(best/nominal*100,1)+'% of nominal), based on '+est.length+' measured response'+(est.length===1?'':'s')+'. The next sugar-addition suggestion uses this best estimate; salt and buffer stocks remain fixed at their entered values.';}
-function drawCorrStockChart(c){const el=$('corrStockChart');if(!el)return;if(!c.learnSugar||!LEARNABLE_SUGARS.has(c.adj)){el.innerHTML='';return;}const est=c.stockEstimates||[],nom=c.stockNominal;if(!(nom>0)){el.innerHTML='';return;}const pts=est.map(e=>({x:e.cycle,y:e.estimate}));const best=[];let sw=0,sx=0;for(const e of est){sw+=e.weight;sx+=e.weight*e.estimate;best.push({x:e.cycle,y:sx/sw});}const xmax=Math.max(2,...est.map(e=>e.cycle));const ys=[nom,...est.map(e=>e.estimate),...best.map(e=>e.y)].filter(Number.isFinite);let ymin=Math.min(...ys)*0.88,ymax=Math.max(...ys)*1.12;if(!(ymax>ymin)){ymin=nom*0.8;ymax=nom*1.2;}const series=[{label:'Nominal stock',color:'var(--ink-3)',dash:'5 4',pts:[{x:1,y:nom},{x:xmax,y:nom}]},{label:'Running best',color:SER[0],pts:best.length?best:[{x:1,y:nom},{x:xmax,y:nom}]}];const points=pts.map((q,i)=>({x:q.x,y:q.y,label:'Cycle '+q.x+': '+fmt(q.y,4)+' M',color:SER[1]}));drawChart(el,{series,points,xmin:1,xmax,ymin,ymax,xt:'Measurement cycle',yt:'Stock concentration (M)',fy:v=>fmt(v,4)+' M',fx:v=>'Cycle '+fmt(v,0),aria:'Estimated adjuster stock concentration by measurement cycle compared with nominal concentration'});}
-
-function corrSolve(){const c=st.corr;if(!c||!c.active)return {err:'Start the correction workflow first.'};if(!c.awaitingMeasurement)return {err:'Remove the test sample first.'};const meas=parseFloat(c.measured),target=parseFloat(c.target);if(!(meas>0)||!(target>0))return {err:'Enter the measured osmolality and target.'};const cur=corrModel(c),offset=meas-cur.osm,bg=corrBackgroundPlan(c);if(bg.err)return bg;const tol=0.5;if(Math.abs(meas-target)<=tol)return {status:'at',current:cur,offset,pred:meas};
+function corrSolve(){const c=st.corr;if(!c||!c.active)return {err:'Start the correction workflow first.'};if(!c.awaitingMeasurement)return {err:'Remove the test sample first.'};const meas=parseFloat(c.measured),target=parseFloat(c.target);if(!(meas>0)||!(target>0))return {err:'Enter the measured osmolality and target.'};const cur=corrModel(c),offset=meas-cur.osm,bg=corrBackgroundPlan(c);if(bg.err)return bg;const tol=Math.max(0,parseFloat(c.tol)||0);if(Math.abs(meas-target)<=tol)return {status:'at',current:cur,offset,pred:meas};
  if(meas<target){const sa=corrStockM(c.adj);if(!(sa>0))return {err:'A liquid '+BY[c.adj].name+' stock is required to raise osmolality while keeping the background concentration constant.'};let lo=0,hi=Math.max(0.001,c.volume*0.02),cand=corrCandidateRaise(c,hi,bg);let val=corrEvalCandidate(c,cand,offset),guard=0;while(val<target&&hi<c.volume*20&&guard++<30){hi*=2;cand=corrCandidateRaise(c,hi,bg);val=corrEvalCandidate(c,cand,offset);}if(val<target)return {err:'Target could not be reached with the current '+BY[c.adj].name+' stock within a practical addition range.'};for(let k=0;k<60;k++){const mid=(lo+hi)/2,cm=corrCandidateRaise(c,mid,bg);if(corrEvalCandidate(c,cm,offset)<target)lo=mid;else hi=mid;}const x=(lo+hi)/2,can=corrCandidateRaise(c,x,bg),pred=corrEvalCandidate(c,can,offset);return {status:'raise',current:cur,offset,pred,can};}
  let lo=0,hi=Math.max(0.001,c.volume*0.05),cand=corrCandidateDilute(c,hi,bg),val=corrEvalCandidate(c,cand,offset),guard=0;while(val>target&&hi<c.volume*100&&guard++<35){hi*=2;cand=corrCandidateDilute(c,hi,bg);val=corrEvalCandidate(c,cand,offset);}if(val>target)return {err:'Target could not be reached by matched dilution within a practical volume range.'};for(let k=0;k<60;k++){const mid=(lo+hi)/2,cm=corrCandidateDilute(c,mid,bg);if(corrEvalCandidate(c,cm,offset)>target)lo=mid;else hi=mid;}const dV=(lo+hi)/2,can=corrCandidateDilute(c,dV,bg),pred=corrEvalCandidate(c,can,offset);return {status:'dilute',current:cur,offset,pred,can};}
 function corrStart(){const c=corrPreparedState();if(c.err){alert(c.err);return;}st.corr=c;save();renderCorrection();}
-function corrTakeSample(){const c=st.corr;if(!c||!c.active)return false;if(c.awaitingMeasurement||c.pending)return false;const uL=parseFloat(c.sampleUL);if(!(uL>0))return false;const dV=uL/1000;if(dV>=c.volume)return false;const f=(c.volume-dV)/c.volume;for(const id in c.amounts)c.amounts[id]*=f;c.volume-=dV;c.awaitingMeasurement=true;c.pending=null;c.cycle=(c.cycle||0)+1;c.history.push({cycle:c.cycle,sampleUL:uL,volumeAfter:c.volume,measured:null,correction:null});return true;}
+function corrTakeSample(n){const c=st.corr;if(!c||!c.active)return false;if(c.awaitingMeasurement||c.pending)return false;const uL=(parseFloat(c.sampleUL)||0)*(n||1);if(!(uL>0))return false;const dV=uL/1000;if(dV>=c.volume)return false;const f=(c.volume-dV)/c.volume;for(const id in c.amounts)c.amounts[id]*=f;c.volume-=dV;c.awaitingMeasurement=true;c.pending=null;c.cycle=(c.cycle||0)+1;c.history.push({cycle:c.cycle,sampleUL:uL,volumeAfter:c.volume,measured:null,correction:null});return true;}
 function corrCalculate(){const c=st.corr;if(!c)return;const r=corrSolve();if(r.err){c.pending={err:r.err};save();renderCorrection();return;}c.pending=r;const h=c.history[c.history.length-1];if(h){h.measured=parseFloat(c.measured)||null;h.predicted=r.pred||null;}if(r.status==='at')c.awaitingMeasurement=false;save();renderCorrection();}
-function corrAdjust(){const c=st.corr;if(!c||!c.active)return;const meas=parseFloat(c.measured);if(!(meas>0)){alert('Enter the measured osmolality first.');return;}if(c.pending&&c.pending.status!=='at')return;const measuredText=c.measured;c.pending=null;c.awaitingMeasurement=false;if(!corrTakeSample()){alert('The sample volume must be greater than zero and smaller than the remaining solution volume.');return;}c.measured=measuredText;const h=c.history[c.history.length-1];if(h)h.measured=meas;corrUpdateStockEstimates(c);corrCalculate();}
-function corrApply(){const c=st.corr;if(!c||!c.pending||!c.pending.can)return;const r=c.pending,can=r.can;const beforeState={volume:c.volume,amounts:Object.assign({},c.amounts)};c.volume=can.volume;c.amounts=can.amounts;c.awaitingMeasurement=false;const h=c.history[c.history.length-1];if(h)h.correction={status:r.status,adds:Object.assign({},can.adds),water:can.water,newVolume:can.volume,pred:r.pred,beforeMeasured:h.measured,beforeState,stockUsed:c.learnSugar?c.stockEstimate:corrStockMRaw(c.adj,c.forms[c.adj]||0)};c.pending=null;c.measured='';save();renderCorrection();}
-function corrAdditionsHTML(r){if(!r||!r.can)return '';const parts=[];for(const id in r.can.adds){const v=r.can.adds[id];if(v>1e-9)parts.push('<tr><td>'+BY[id].name+'</td><td>'+volFmt(v)+'</td><td>of '+stockLabel(BY[id])+'</td></tr>');}if(r.can.water>1e-9)parts.push('<tr><td>Water</td><td>'+volFmt(r.can.water)+'</td><td>matched dilution balance</td></tr>');return '<table><thead><tr><th>Add</th><th>Volume</th><th>Source</th></tr></thead><tbody>'+parts.join('')+'</tbody></table>'; }
-function renderCorrection(){const c=st.corr,off=$('corrInactive'),on=$('corrActive');if(!off||!on)return;off.hidden=!!(c&&c.active);on.hidden=!(c&&c.active);if(!c||!c.active)return;const samp=$('corrSample'),tar=$('corrTarget'),me=$('corrMeasured');if(document.activeElement!==samp)samp.value=c.sampleUL;if(document.activeElement!==tar)tar.value=c.target;if(document.activeElement!==me)me.value=c.measured||'';const model=corrModel(c),adj=BY[c.adj],state=$('corrState');let html='<p class="main">Cycle '+(c.cycle||0)+' · '+vText(c.volume)+' tracked volume · adjusting with '+adj.name+'</p><p>Current modeled osmolality: '+fmt(model.osm,1)+' mOsm/kg. Background concentrations are held at their starting values.</p>';if(c.awaitingMeasurement)html+='<p><b>'+fmt(c.sampleUL,0)+' µL has been accounted for as the measured sample.</b> The recommendation below applies to the remaining '+vText(c.volume)+'.</p>';else html+='<p>Enter the osmometer result from your '+fmt(c.sampleUL,0)+' µL sample and press <b>Adjust</b>. That same click subtracts the sample from the tracked volume.</p>';if(c.pending){html+='<div class="corrresult">';if(c.pending.err)html+='<p class="main">'+c.pending.err+'</p>';else if(c.pending.status==='at')html+='<p class="main">Measured value is already within 0.5 mOsm/kg of the target. No addition is needed; the sample removal has still been recorded.</p>';else{html+='<p class="main">Suggested correction → predicted '+fmt(c.pending.pred,1)+' mOsm/kg</p>'+corrAdditionsHTML(c.pending)+'<p>New total volume after applying: '+vText(c.pending.can.volume)+'.</p>';}html+='</div>';}state.innerHTML=html;$('corrAdjust').disabled=c.awaitingMeasurement||(c.pending&&c.pending.status!=='at');$('corrApply').disabled=!(c.pending&&c.pending.can);const lt=$('corrLearnText');if(lt)lt.innerHTML=corrStockLearningHTML(c);drawCorrStockChart(c);const hist=c.history||[];if(!hist.length){$('corrHistory').innerHTML='';return;}let hh='<table><thead><tr><th>Cycle</th><th>Sample</th><th>Measured</th><th>Correction</th><th>Stock estimate</th><th>Volume after</th></tr></thead><tbody>';for(const h of hist){let corr='–',v=h.volumeAfter;if(h.correction){const a=[];for(const id in h.correction.adds)if(h.correction.adds[id]>1e-9)a.push(volFmt(h.correction.adds[id])+' '+BY[id].name);if(h.correction.water>1e-9)a.push(volFmt(h.correction.water)+' water');corr=a.join(' + ');v=h.correction.newVolume;}const se=h.stockEstimate?fmt(h.stockEstimate,4)+' M':(h.correction&&h.correction.stockEstimateReason&&h.correction.adds&&h.correction.adds[c.adj]>1e-9?'pending next measurement':'–');hh+='<tr><td>'+h.cycle+'</td><td>'+fmt(h.sampleUL,0)+' µL</td><td>'+(h.measured?fmt(h.measured,1)+' mOsm/kg':'–')+'</td><td>'+corr+'</td><td>'+se+'</td><td>'+vText(v)+'</td></tr>';}$('corrHistory').innerHTML=hh+'</tbody></table>'; }
+function corrAdjust(){const c=st.corr;if(!c||!c.active)return;const vals=[c.r1,c.r2].map(parseFloat).filter(x=>x>0);if(!vals.length){alert('Enter a reading first.');return;}if(c.pending&&c.pending.status!=='at')return;
+ const meas=vals.reduce((a,b)=>a+b,0)/vals.length;c.pending=null;c.awaitingMeasurement=false;if(!corrTakeSample(vals.length)){alert('The sample volume must be greater than zero and smaller than the remaining volume.');return;}
+ c.measured=String(meas);const h=c.history[c.history.length-1];if(h){h.measured=meas;h.readings=vals;}corrCalculate();if(c.pending&&c.pending.status==='at'){c.r1='';c.r2='';save();renderCorrection();}}
+function corrApply(){const c=st.corr;if(!c||!c.pending||!c.pending.can)return;const r=c.pending,can=r.can;const beforeState={volume:c.volume,amounts:Object.assign({},c.amounts)};c.volume=can.volume;c.amounts=can.amounts;c.awaitingMeasurement=false;const h=c.history[c.history.length-1];if(h)h.correction={status:r.status,adds:Object.assign({},can.adds),water:can.water,newVolume:can.volume,pred:r.pred,beforeMeasured:h.measured,beforeState,stockUsed:corrStockMRaw(c.adj,c.forms[c.adj]||0)};c.pending=null;c.measured='';c.r1='';c.r2='';save();renderCorrection();}
+function corrAdditionsHTML(r){if(!r||!r.can)return '';const parts=[];for(const id in r.can.adds){const v=r.can.adds[id];if(v>1e-9)parts.push('<tr><td>'+BY[id].name+'</td><td>'+volFmt(v)+'</td><td>'+stockLabel(BY[id])+'</td></tr>');}if(r.can.water>1e-9)parts.push('<tr><td>Water</td><td>'+volFmt(r.can.water)+'</td><td></td></tr>');return '<table><thead><tr><th>Add</th><th>Volume</th><th>Stock</th></tr></thead><tbody>'+parts.join('')+'</tbody></table>';}
+function renderCorrection(){const c=st.corr,off=$('corrInactive'),on=$('corrActive');if(!off||!on)return;off.hidden=!!(c&&c.active);on.hidden=!(c&&c.active);if(!c||!c.active)return;
+ const bind=(id,v)=>{const el=$(id);if(el&&document.activeElement!==el)el.value=v??'';};
+ bind('corrSample',c.sampleUL);bind('corrTarget',c.target);bind('corrTol',c.tol);bind('corrMeasured',c.r1);bind('corrMeasured2',c.r2);
+ if(c.tol===undefined||c.tol===null)c.tol=Math.max(2,Math.round(0.01*(parseFloat(c.target)||0)));const tol=Math.max(0,parseFloat(c.tol)||0),target=parseFloat(c.target)||0,state=$('corrState');let html='<p class="main">Cycle '+(c.cycle||0)+', '+vText(c.volume)+'</p>',hit=false;
+ if(c.pending){if(c.pending.err)html+='<p>'+c.pending.err+'</p>';
+  else if(c.pending.status==='at'){hit=true;html='<p class="main"><span class="dot"></span>Within ±'+fmt(tol,0)+' mOsm/kg of the target</p><p>Measured '+fmt(parseFloat(c.measured),1)+' mOsm/kg.</p>';}
+  else html+='<div class="corrresult">'+corrAdditionsHTML(c.pending)+'</div>';}
+ state.className='corrstate'+(hit?' hit':'');state.innerHTML=html;
+ $('corrAdjust').disabled=c.awaitingMeasurement||(c.pending&&c.pending.status!=='at');$('corrApply').disabled=!(c.pending&&c.pending.can);
+ const hist=c.history||[];if(!hist.length){$('corrHistory').innerHTML='';return;}
+ let hh='<table><thead><tr><th>Cycle</th><th>Measured</th><th>Correction</th><th>Volume</th></tr></thead><tbody>';
+ for(const h of hist){let corr='–',v=h.volumeAfter;if(h.correction){const a=[];for(const id in h.correction.adds)if(h.correction.adds[id]>1e-9)a.push(volFmt(h.correction.adds[id])+' '+BY[id].name);if(h.correction.water>1e-9)a.push(volFmt(h.correction.water)+' water');corr=a.join(' + ')||'–';v=h.correction.newVolume;}
+  const inTol=h.measured>0&&Math.abs(h.measured-target)<=tol;
+  const rd=h.measured>0?(h.readings&&h.readings.length>1?h.readings.map(x=>fmt(x,0)).join(' / ')+' → '+fmt(h.measured,1):fmt(h.measured,1)):'–';
+  hh+='<tr'+(inTol?' class="hit"':'')+'><td>'+(inTol?'<span class="dot"></span>':'')+h.cycle+'</td><td>'+rd+'</td><td>'+corr+'</td><td>'+vText(v)+'</td></tr>';}
+ $('corrHistory').innerHTML=hh+'</tbody></table>';}
 
 let rowsEl=null;const $=id=>document.getElementById(id);
 const lname=c=>['Sugars and polyols','Other small molecules'].includes(c.group)&&c.id!=='DMSO'?c.name.toLowerCase():c.name;
@@ -449,7 +434,7 @@ function formOpts(c,sel){return c.forms.map((f,k)=>'<option value="'+k+'"'+(k===
 
 function buildRows(){rowsEl.innerHTML='';
  rows.forEach((r,i)=>{const c=BY[r.id],units=unitsFor(c);if(!units.find(u=>u[0]===r.unit))r.unit=units[0][0];
-  const sk=stockOf(c.id),showForm=needsForm(c,r.unit,sk.unit,parseFloat(sk.val));
+  const sk=stockNominal(c.id),showForm=needsForm(c,r.unit,sk.unit,parseFloat(sk.val));
   const d=document.createElement('div');d.className='row'+(showForm?' has-form':'');
   d.innerHTML='<select class="c-comp" aria-label="Component">'+compOptions(r.id)+'</select>'+
    '<input type="number" class="c-val" step="any" min="0" placeholder="final" aria-label="Final concentration of '+c.name+'" value="'+(r.val??'')+'">'+
@@ -461,8 +446,8 @@ function buildRows(){rowsEl.innerHTML='';
   d.querySelector('.c-comp').onchange=e=>{const nc=BY[e.target.value];r.id=nc.id;r.form=0;const u=unitsFor(nc);if(!u.find(x=>x[0]===r.unit))r.unit=u[0][0];buildRows();update();};
   d.querySelector('.c-val').oninput=e=>{r.val=e.target.value;update();};
   d.querySelector('.c-unit').onchange=e=>{const amt=toAmount(r);r.unit=e.target.value;if(amt>0)r.val=+sig(fromAmount(c,amt,r.unit,r.form));buildRows();update();};
-  const sv=d.querySelector('.c-sval');sv.oninput=e=>{setStock(c.id,e.target.value,stockOf(c.id).unit);update();};sv.onchange=()=>{buildRows();update();};
-  d.querySelector('.c-sunit').onchange=e=>{setStock(c.id,stockOf(c.id).val,e.target.value);buildRows();update();};
+  const sv=d.querySelector('.c-sval');sv.oninput=e=>{setStock(c.id,e.target.value,stockNominal(c.id).unit);update();};sv.onchange=()=>{buildRows();update();};
+  d.querySelector('.c-sunit').onchange=e=>{setStock(c.id,stockNominal(c.id).val,e.target.value);buildRows();update();};
   const fs=d.querySelector('.c-form select');if(fs)fs.onchange=e=>{r.form=+e.target.value;update();};
   d.querySelector('button.icon').onclick=()=>{rows.splice(i,1);buildRows();update();};
   rowsEl.appendChild(d);});
@@ -472,21 +457,10 @@ function buildRows(){rowsEl.innerHTML='';
 function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.adj],V=parseFloat(st.vol)||0,nm=lname(adj);
  const ok=S.status==='ok'&&S.x>0,res=ok?S.final:base;
  $('phWrap').hidden=!rows.some(r=>BY[r.id].type==='buffer');
- $('bigLabel').textContent=ok?'After topping up':'Components as listed';
- $('big').innerHTML=fmt(res.osm+off,1)+'<small>mOsm/kg</small>';
- $('bigSub').textContent=(S.target>0?'Target '+fmt(S.target,0)+' mOsm/kg.':'No target set.')+(S.meas?' Calibrated to your measured '+fmt(S.meas,0)+' mOsm/kg.':'');
- let h='';
- if(S.status==='notarget')h='<p class="main">Set a target osmolality to see how much to add.</p>';
- else if(S.status==='above')h='<p class="main">'+(base.osm+off-S.target<0.05?'Already at the target.':'The components alone are '+fmt(base.osm+off-S.target,1)+' mOsm/kg above the target.')+'</p>'+(base.osm+off-S.target<0.05?'':'<p>Topping up can only raise it, so lower a component or dilute.</p>');
- else if(S.status==='unreachable')h='<p class="main">The target can’t be reached with '+nm+' within the model’s range.</p><p>Pick a different solute or lower the target.</p>';
- else{const ad=addText(adj,S.x,st.adjForm,V),conc=concLabel(adj,S.x);
-  if(V<=0)h='<p class="main">Add <b>'+conc+'</b> '+nm+'.</p><p>Enter a final volume to get the amount to pipette.</p>';
-  else if(ad.err)h='<p class="main">You need '+conc+' '+nm+', but the '+stockLabel(adj)+' stock is too dilute.</p><p>Use a more concentrated stock.</p>';
-  else if(ad.solid)h='<p class="main">Weigh <b>'+ad.text+'</b> '+nm+'.</p><p>That gives '+conc+' '+nm+' in '+vText(V)+'.</p>';
-  else h='<p class="main">Add <b>'+ad.text+'</b> of '+stockLabel(adj)+' '+nm+'.</p><p>That gives '+conc+' '+nm+' in '+vText(V)+'.</p>';}
- $('answer').innerHTML=h;
+ $('big').innerHTML=(S.target>0?fmt(S.target,0):'–')+'<small>mOsm/kg</small>';
+ const over=base.osm+off-S.target;const statusWarn=S.status==='notarget'?'Set a target osmolality.':(S.status==='above'&&over>=0.05)?'The components alone are '+fmt(over,1)+' mOsm/kg above the target.':S.status==='unreachable'?'The target can’t be reached with '+nm+'.':'';
  // top-up stock and form fields
- const ask=stockOf(st.adj),asEl=$('adjStock'),auEl=$('adjStockUnit');if(document.activeElement!==asEl)asEl.value=ask.val;
+ const ask=stockNominal(st.adj),asEl=$('adjStock'),auEl=$('adjStockUnit');if(document.activeElement!==asEl)asEl.value=ask.val;
  auEl.innerHTML=opts(stockUnitsFor(adj),ask.unit);
  const fw=$('adjFormWrap'),fsel=$('adjForm');if(needsForm(adj,'mM',ask.unit,parseFloat(ask.val))){fw.hidden=false;fw.firstChild.textContent=hasStock(adj)?'Stock made from':'Form you weigh';fsel.innerHTML=formOpts(adj,st.adjForm);}else fw.hidden=true;
  // pipetting list
@@ -494,14 +468,17 @@ function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.a
  const line=(c,amt,form,cls,label)=>{const ad=addText(c,amt,form,V);if(ad.vol)volSum+=ad.vol;if(ad.solid)anySolid=true;if(ad.err)warns.push('The '+c.name+' stock ('+stockLabel(c)+') is too dilute for '+concLabel(c,amt)+'.');
   const how=V<=0?'–':ad.err?'–':ad.solid?'weigh '+ad.text:ad.text+' <span class="of">of '+stockLabel(c)+'</span>';
   return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+label+'</td><td>'+concLabel(c,amt)+'</td><td>'+how+'</td></tr>';};
- rows.forEach(r=>{const c=BY[r.id],amt=toAmount(r);if(amt>0)rh+=line(c,amt,r.form,'',c.name);});
- if(ok)rh+=line(adj,S.x,st.adjForm,'adj',adj.name);
+ const mix=rows.map(r=>({c:BY[r.id],amt:toAmount(r),form:r.form}));if(ok){const ex=mix.find(m=>m.c.id===st.adj);if(ex)ex.amt+=S.x;else mix.push({c:adj,amt:S.x,form:st.adjForm});}
+ mix.forEach(m=>{if(m.amt>0)rh+=line(m.c,m.amt,m.form,'',m.c.name);});
  if(V>0){const water=V-volSum;if(water<0)warns.push('The stock volumes add up to more than '+vText(V)+'. Use more concentrated stocks or a larger volume.');
   rh+='<tr class="water"><td>Water</td><td></td><td>'+(anySolid?'to '+vText(V):(water>=0?volFmt(water):'–'))+'</td></tr>';}
- $('recipe').innerHTML=rh+'</tbody>';$('recipeHead').textContent=V>0?'To pipette for '+vText(V):'To pipette';
+ $('recipe').innerHTML=rh+'</tbody>';$('recipeHead').textContent=V>0?'Mix for '+vText(V):'Mix';if(!(V>0))warns.unshift('Enter a final volume.');if(statusWarn)warns.unshift(statusWarn);
  $('warnings').innerHTML=warns.map(w=>'<p>'+w+'</p>').join('');
- const lD=res.Imolar>0?0.304/Math.sqrt(res.Imolar):NaN;
- $('stats').innerHTML='<dt>Osmolarity</dt><dd>'+fmt(res.osmL+off*res.w,1)+' mOsm/L</dd><dt>Ionic strength</dt><dd>'+fmt(res.Imolar*1000,1)+' mM</dd><dt>Debye length</dt><dd>'+(isFinite(lD)?fmt(lD,2)+' nm':'–')+'</dd>';
+ // stock check
+ {const sc=scState(st.adj),wrap=$('scheck'),nomS=stockNominal(st.adj),nomM=amountOf(adj,nomS.val,nomS.unit,st.adjForm);wrap.hidden=!(nomM>0);
+  const b2=(id,v)=>{const el=$(id);if(document.activeElement!==el)el.value=v??'';};b2('scDil',sc.dil);b2('scM1',sc.m1);b2('scM2',sc.m2);$('scUse').checked=!!sc.use;
+  const dil=parseFloat(sc.dil),mean=meanReadings(sc.m1,sc.m2),eff=stockFromMeasurement(st.adj,mean,dil),exp=nomM>0&&dil>=1?compute([{c:adj,amt:nomM/dil}],7.4).osm:NaN;
+  $('scRes').textContent=(isFinite(exp)?'Expected at '+sig(nomM)+' M: '+fmt(exp,0)+' mOsm/kg.':'')+(eff>0?' Measured: '+sig(eff)+' M ('+fmt(100*eff/nomM,1)+'% of nominal).':'');}
  // calculation details
  let bh='<thead><tr><th>Component</th><th>Molality</th><th>Ideal</th><th>Predicted</th><th>Model</th></tr></thead><tbody>';
  res.per.forEach((p,i)=>{if(!(p.amt>0))return;const added=i>=rows.length;bh+='<tr'+(added?' class="adj"':'')+'><td>'+p.c.name+(added?' (top-up)':'')+(p.c.type==='buffer'?' ('+fmt(100*p.f,0)+'% base form)':'')+'</td><td>'+fmt(p.m*1000,p.c.type==='polymer'?2:1)+' mmol/kg</td><td>'+fmt(p.ideal*1000,1)+'</td><td>'+fmt(p.contrib*1000,1)+'</td><td>'+p.c.note+'</td></tr>';});
@@ -509,13 +486,10 @@ function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.a
  $('breakdown').innerHTML=bh;
  window._last={S,adj,V};if(figsOpen())drawDynamicFigs();renderCorrection();}
 
-function recipeText(){const {S,adj,V}=window._last;const lines=[];lines.push('Solution'+(V>0?', '+vText(V)+' final':'')+(rows.some(r=>BY[r.id].type==='buffer')?', buffers at pH '+st.pH:''));
- let volSum=0,anySolid=false;const add=(c,amt,form,label)=>{const ad=addText(c,amt,form,V);if(ad.vol)volSum+=ad.vol;if(ad.solid)anySolid=true;lines.push(label+': '+concLabel(c,amt)+(V>0&&!ad.err?', '+(ad.solid?'weigh '+ad.text:ad.text+' of '+stockLabel(c)+' stock'):''));};
- rows.forEach(r=>{const c=BY[r.id],amt=toAmount(r);if(amt>0)add(c,amt,r.form,c.name);});
- if(S.status==='ok'&&S.x>0)add(adj,S.x,st.adjForm,adj.name+' (top-up)');
- if(V>0)lines.push('Water: '+(anySolid?'make up to '+vText(V):volFmt(V-volSum)));
- const res=S.status==='ok'?S.final:S.base;lines.push('Predicted osmolality: '+fmt(res.osm+(S.offset||0),1)+' mOsm/kg'+(S.meas?' (calibrated to measured '+fmt(S.meas,0)+')':''));
- lines.push('Ionic strength: '+fmt(res.Imolar*1000,1)+' mM');return lines.join('\n');}
+function recipeText(){const {S,adj,V}=window._last;const lines=[];lines.push('Mix'+(V>0?', '+vText(V):'')+(S.target>0?', target '+fmt(S.target,0)+' mOsm/kg':'')+(rows.some(r=>BY[r.id].type==='buffer')?', buffers at pH '+st.pH:''));
+ const mix=rows.map(r=>({c:BY[r.id],amt:toAmount(r),form:r.form}));if(S.status==='ok'&&S.x>0){const ex=mix.find(m=>m.c.id===st.adj);if(ex)ex.amt+=S.x;else mix.push({c:adj,amt:S.x,form:st.adjForm});}
+ let volSum=0,anySolid=false;for(const m of mix){if(!(m.amt>0))continue;const ad=addText(m.c,m.amt,m.form,V);if(ad.vol)volSum+=ad.vol;if(ad.solid)anySolid=true;lines.push(m.c.name+': '+concLabel(m.c,m.amt)+(V>0&&!ad.err?', '+(ad.solid?'weigh '+ad.text:ad.text+' of '+stockLabel(m.c)):''));}
+ if(V>0)lines.push('Water: '+(anySolid?'make up to '+vText(V):volFmt(V-volSum)));return lines.join('\n');}
 
 const SER=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'],DASHES=['','6 4','2 3','10 4 2 4','4 2',''];
 function niceTicks(a,b,n){const st0=(b-a)/n,mag=Math.pow(10,Math.floor(Math.log10(st0))),f=st0/mag,step=(f<1.5?1:f<3?2:f<7?5:10)*mag,t=[];for(let v=Math.ceil(a/step-1e-9)*step;v<=b+1e-9;v+=step)t.push(+v.toFixed(10));return t;}
@@ -594,8 +568,8 @@ function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(fig
  adjSel.onchange=e=>{st.adj=e.target.value;st.adjForm=0;update();};
  $('adjForm').onchange=e=>{st.adjForm=+e.target.value;update();};
  const asEl=$('adjStock'),auEl=$('adjStockUnit');
- asEl.oninput=()=>{setStock(st.adj,asEl.value,stockOf(st.adj).unit);update();};asEl.onchange=()=>{buildRows();update();};
- auEl.onchange=()=>{setStock(st.adj,stockOf(st.adj).val,auEl.value);buildRows();update();};
+ asEl.oninput=()=>{setStock(st.adj,asEl.value,stockNominal(st.adj).unit);update();};asEl.onchange=()=>{buildRows();update();};
+ auEl.onchange=()=>{setStock(st.adj,stockNominal(st.adj).val,auEl.value);buildRows();update();};
  ['pH','ref','delta','measured','vol'].forEach(k=>{const el=$(k);el.value=st[k];el.oninput=()=>{st[k]=k==='pH'?(parseFloat(el.value)||7):el.value;update();};});
  if(st.measured!=='')$('calib').open=true;
  $('addRow').onclick=()=>{rows.push({id:'NaCl',val:'',unit:'mM',form:0});buildRows();update();const all=rowsEl.querySelectorAll('.c-comp');if(all.length)all[all.length-1].focus();};
@@ -603,7 +577,12 @@ function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(fig
  $('corrStart').onclick=corrStart;$('corrRestart').onclick=corrStart;$('corrAdjust').onclick=corrAdjust;$('corrApply').onclick=corrApply;
  $('corrSample').oninput=e=>{if(st.corr){st.corr.sampleUL=e.target.value;save();renderCorrection();}};
  $('corrTarget').oninput=e=>{if(st.corr){st.corr.target=e.target.value;st.corr.pending=null;save();renderCorrection();}};
- $('corrMeasured').oninput=e=>{if(st.corr){st.corr.measured=e.target.value;st.corr.pending=null;save();renderCorrection();}};
+ $('corrMeasured').oninput=e=>{if(st.corr){st.corr.r1=e.target.value;save();}};
+ $('corrMeasured2').oninput=e=>{if(st.corr){st.corr.r2=e.target.value;save();}};
+ $('corrTol').oninput=e=>{if(st.corr){st.corr.tol=e.target.value;save();renderCorrection();}};
+ ['scDil','scM1','scM2'].forEach((id,k)=>{$(id).oninput=e=>{scState(st.adj)[['dil','m1','m2'][k]]=e.target.value;update();};});
+ $('scUse').onchange=e=>{scState(st.adj).use=e.target.checked;buildRows();update();};
+ if(Object.values(st.scheck||{}).some(x=>x&&(x.use||x.m1)))$('scheck').open=true;
  buildRows();update();}
 if(typeof document!=='undefined')boot();
 </script>
