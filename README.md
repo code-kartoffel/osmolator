@@ -1,39 +1,31 @@
 # Osmolality calculator
 
-A single-page tool for making solutions to a target osmolality from stock solutions. It runs in the browser; your solution and stock concentrations are stored locally.
+A single-page tool for making solutions to a target osmolality from stock solutions. It runs entirely in the browser, works on desktop, iPad and phone, and stores nothing: every reload starts from the default solution (10 mM NaCl, adjusted with glucose to 900 mOsm/kg in 10 mL).
 
-## Features
+## Steps
 
-- Non-ideal models: Pitzer for salts; Norrish water-activity models for glucose, sucrose, sorbitol, mannitol, glycerol and urea; sucrose constant for trehalose; approximate coefficients for DMSO and ethanol; virial estimate for PEG.
+1. **Formulate the solution.** Components at their final concentrations with their stocks, the adjustment solution (usually a sugar) and its stock, the target osmolality and the final volume.
+2. **Measure the adjustment solution (optional).** Measure a dilution of the adjustment stock (default 4×) once or twice. The calculator shows the expected reading and the stock concentration implied by your reading. Tick the box to use the measured concentration for the mix and for corrections; it is off by default.
+3. **Mix.** The target osmolality and what to pipette: each stock, then the water. Copy recipe puts the list on the clipboard.
+4. **Measure and correct.** Enter one or two readings (the mean is used, and each reading's sample volume is subtracted) and press Adjust. Within the tolerance (default ±1% of the target) the cycle turns green. Otherwise add the suggested volumes, press Apply and measure again. All other components stay at their concentrations.
+5. **Details.** Collapsible calculation breakdown and figures explaining the models.
+
+Each step has a Tips button with a short description.
+
+## Models
+
+- Salts: Pitzer ion-interaction model at 25 °C with published binary parameters.
+- Glucose, sucrose, sorbitol, mannitol, glycerol, urea: Norrish water-activity model; trehalose uses the sucrose constant.
+- DMSO and ethanol: approximate osmotic coefficients. PEG: virial estimate.
 - Buffers split into acid and base forms at the set pH.
-- Pipetting volumes for the whole mix from your stock concentrations.
-- Optional measured base osmolality: measure the components before topping up and the model only predicts the top-up.
-- Optional stock check: measure a diluted top-up stock (default 4×) once or twice and, if ticked, use the measured stock concentration everywhere. Off by default.
-- Correction workflow: enter one or two readings per cycle (the mean is used and each reading's sample volume is subtracted). A correction is suggested only when the mean is outside the tolerance; within tolerance the cycle is marked green.
-- Figures showing the model behind the numbers.
 
-## Correction workflow
-
-1. Prepare the mix and press **Start correction**.
-2. Measure one or two samples, enter the readings and press **Adjust**.
-3. If the mean is within ±tolerance (default 1% of target), the cycle turns green and no addition is suggested.
-4. Otherwise add the suggested volumes, press **Apply**, and measure again.
-
-Non-adjuster components are kept at their starting concentrations through every correction. The tolerance should not be set below the osmometer's repeatability; for a Gonotec Osmomat 3000 that is about 0.5% (CV) between 400 and 1500 mOsm/kg.
-
-## Stock check
-
-Dilute the top-up stock by the set factor, measure it, and enter the reading(s). The calculator inverts its model to give the effective stock concentration and shows it against the nominal value. Tick **Use measured stock concentration** to apply it to the mix and to corrections.
+The calculator is an estimate; always verify on an osmometer. Set the correction tolerance no lower than your osmometer's repeatability (for a Gonotec Osmomat 3000, about 0.5% CV between 400 and 1500 mOsm/kg).
 
 ## Publish on GitHub Pages
 
 1. Upload `index.html` and `README.md` to a public repository.
 2. Settings → Pages → Deploy from a branch → `main`, `/ (root)`.
 3. The page appears at `https://<username>.github.io/<repository>/`. Later commits redeploy automatically.
-
-## Accuracy
-
-The calculator is an estimate; verify solutions on an osmometer. Salt-sugar cross-interactions and mixed-electrolyte terms without published parameters are not included. Concentrated mixtures are flagged.
 
 ## Sources
 

@@ -2,197 +2,222 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Osmolality calculator</title>
-<meta name="description" content="Work out the osmolality of a buffer from its components and how much glucose or sucrose stock to pipette to reach a target.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230D6E6C'/%3E%3Ccircle cx='11' cy='13' r='3' fill='%23fff'/%3E%3Ccircle cx='20' cy='19' r='4' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230A48B5'/%3E%3Ccircle cx='11' cy='13' r='3' fill='%23fff'/%3E%3Ccircle cx='20' cy='19' r='4' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#EFF3F2;--surface:#FFFFFF;--ink:#14232A;--ink-2:#4A5A61;--ink-3:#6E7E85;--line:#D2DBDA;--accent:#0D6E6C;--accent-ink:#FFFFFF;--warn:#8A5200;--warn-bg:#FFF4DF;--good:#1C7F45;--good-bg:#E6F4EB;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#6250d6;--grid:#E3E9E8;--axis:#B9C4C3;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0E1517;--surface:#162024;--ink:#E3EBEC;--ink-2:#A5B4B8;--ink-3:#7F8F94;--line:#29373B;--accent:#4CC3BE;--accent-ink:#06201F;--warn:#F2B45A;--warn-bg:#2C2312;--good:#4CC38A;--good-bg:#10261B;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#9085e9;--grid:#243034;--axis:#3A494D;color-scheme:dark}}
+:root{--page:#EEF2F7;--page-ink:#0E1A2E;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--page:#070B12;--page-ink:#E6ECF5;color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
-.page{max-width:1180px;margin:0 auto;padding:28px 24px 48px}
-header{max-width:68ch;margin-bottom:24px}
-h1{font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-0.012em;margin:0 0 8px}
-header p{margin:0;color:var(--ink-2);font-size:16px}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:32px;align-items:start}
-@media (max-width:940px){.layout{grid-template-columns:1fr}}
-h2{font-size:18px;font-weight:600;margin:0}
-section{margin-bottom:30px}
-.sechead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:10px}
-select,input[type=number]{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
-input[type=number]{font-variant-numeric:tabular-nums}
-button{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
-button:hover{border-color:var(--ink-3)}
-button.icon{padding:4px 0;width:34px;font-size:18px;line-height:1;color:var(--ink-3)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.inline{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);white-space:nowrap}
-.inline select{width:auto}
-.inline input{width:76px}
-.rowhead,.row{display:grid;grid-template-columns:minmax(150px,2fr) minmax(70px,1fr) 78px minmax(70px,1fr) 78px 34px;gap:8px;align-items:center}
-.rowhead{font-size:13px;color:var(--ink-3);padding:0 11px 4px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--page-ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5}
+.page{max-width:900px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+h1{font-size:30px;font-weight:600;letter-spacing:-.015em;margin:6px 6px 18px}
+.step{--ink:#fff;--ink-2:rgba(255,255,255,.8);--ink-3:rgba(255,255,255,.6);--line:rgba(255,255,255,.16);--field:rgba(255,255,255,.08);--field-line:rgba(255,255,255,.26);--good:#6BE3A4;--good-bg:rgba(107,227,164,.16);--warn:#FFD58A;--warn-bg:rgba(255,196,77,.16);--surface:var(--bg);--grid:rgba(255,255,255,.12);--axis:rgba(255,255,255,.36);--s1:#8EC5FF;--s2:#FFA26B;--s3:#4FE0A8;--s4:#FFD24D;--s5:#FF8FB8;--s6:#BBAEFF;
+ color-scheme:dark;background:var(--bg);color:var(--ink);border-radius:22px;padding:20px 20px 22px;margin:0 0 14px;box-shadow:0 1px 2px rgba(6,16,36,.2),0 10px 28px rgba(6,16,36,.14)}
+.s1{--bg:#283348}.s2{--bg:#213762}.s3{--bg:#1A3C7D}.s4{--bg:#124299}.s5{--bg:#0A47B4}
+.stephead{display:flex;align-items:center;gap:12px}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;font-weight:600;font-size:15px}
+.stephead h2{font-size:19px;font-weight:600;margin:0;flex:1;line-height:1.25}
+.stephead h2 .opt{font-size:14px;font-weight:400;color:var(--ink-3);margin-left:6px}
+.tipbtn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;color:var(--ink-2);font:inherit;font-size:15px;padding:6px 2px;min-height:44px;cursor:pointer}
+.tipicon{width:22px;height:22px;border-radius:50%;border:1.6px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:13px;line-height:1}
+.tipbtn[aria-expanded="true"]{color:#fff}
+.tipbody{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.1);color:var(--ink-2);font-size:15px}
+.stepbody{margin-top:16px}
+.subhead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:var(--ink-2);margin:22px 0 10px}
+.stepbody>.subhead:first-child{margin-top:0}
+.step select,.step input[type=number]{font:inherit;font-size:16px;color:var(--ink);background-color:var(--field);border:1px solid var(--field-line);border-radius:11px;padding:9px 11px;width:100%;min-width:0;min-height:44px;-webkit-appearance:none;appearance:none;font-variant-numeric:tabular-nums}
+.step select{padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23ffffff' stroke-opacity='.75' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.step select option,.step select optgroup{color:#0E1A2E;background:#fff}
+.step input::placeholder{color:var(--ink-3)}
+.step button{font:inherit;font-size:15px;color:var(--ink);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:11px;padding:9px 16px;min-height:44px;cursor:pointer}
+.step button:hover{background:rgba(255,255,255,.18)}
+.step button.primary{background:#fff;color:#0B2A5E;border-color:#fff;font-weight:600}
+.step button:disabled{opacity:.4;cursor:default}
+.step button.icon{width:44px;padding:0;font-size:24px;line-height:1;color:var(--ink-3);background:transparent;border-color:transparent}
+.step .tipbtn,.step .tipbtn:hover{background:transparent;border:0;padding:6px 2px}
+:focus-visible{outline:2px solid #9CC8FF;outline-offset:2px}
+.rowhead,.row{display:grid;grid-template-columns:minmax(140px,2fr) minmax(70px,1fr) 86px minmax(70px,1fr) 86px 44px;gap:8px;align-items:center}
+.rowhead{font-size:13px;color:var(--ink-3);padding:0 2px 6px}
 .rowhead span:nth-child(2){grid-column:2/4}.rowhead span:nth-child(3){grid-column:4/6}
-.rows{display:flex;flex-direction:column;gap:6px}
-.row{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;grid-template-areas:"comp val unit sval sunit del"}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{grid-template-areas:"comp val unit sval sunit del"}
 .row.has-form{grid-template-areas:"comp val unit sval sunit del" "form form form form form form"}
 .row .c-comp{grid-area:comp}.row .c-val{grid-area:val}.row .c-unit{grid-area:unit}.row .c-sval{grid-area:sval}.row .c-sunit{grid-area:sunit}.row .icon{grid-area:del}
-.row .c-form{grid-area:form;display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.row .c-form{grid-area:form;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
 .row .c-form select{width:auto}
-@media (max-width:640px){.rowhead{display:none}.row,.row.has-form{grid-template-columns:1fr 84px 34px;grid-template-areas:"comp comp del" "val unit ." "sval sunit ." "form form form"}}
+@media (max-width:680px){.rowhead{display:none}.row,.row.has-form{grid-template-columns:1fr 1fr 44px;grid-template-areas:"comp comp del" "val unit ." "sval sunit ." "form form form";padding:10px;border-radius:14px;background:rgba(255,255,255,.06)}}
+.mlab{display:none}
+@media (max-width:680px){.row,.row.has-form{grid-template-areas:"comp comp del" "fl fl fl" "val unit ." "sl sl sl" "sval sunit ." "form form form"}.mlab{display:block;font-size:12.5px;color:var(--ink-3);margin:2px 0 -4px}.mlab-f{grid-area:fl}.mlab-s{grid-area:sl}}
 .empty{color:var(--ink-3);margin:6px 0}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-top:10px}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px 16px;margin-top:10px}
-.field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--ink-2)}
-.pair{display:flex;align-items:center;gap:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:12px}
+.inline{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink-2)}
+.inline input{width:96px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 16px}
+.fields+.fields{margin-top:14px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink-2)}
+.pair{display:flex;gap:8px;align-items:center}
 .pair span{color:var(--ink-3)}
-.pair select{width:auto}
-.hint{font-size:12.5px;color:var(--ink-3);margin:0}
-details summary{cursor:pointer;color:var(--ink-2);font-size:14px}
-#calib{margin-top:14px}
-#calib .field{margin-top:8px;max-width:340px}
-#calib .hint{margin-top:6px;max-width:60ch}
-.panel{position:sticky;top:16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
-@media (max-width:940px){.panel{position:static}}
-.panel .label{font-size:14px;color:var(--ink-2)}
-.big{font-size:48px;line-height:1;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;margin:6px 0 4px}
-.big small{font-size:16px;font-weight:500;color:var(--ink-2);letter-spacing:0;margin-left:6px}
-.panel .sub{font-size:13.5px;color:var(--ink-2);margin:0}
-.answer{margin:16px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}
-.answer p{margin:0;color:var(--ink-2);font-size:14px}
-.answer .main{color:var(--ink);font-size:17px;line-height:1.35;margin-bottom:4px}
-.answer b{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
-h3{font-size:14px;font-weight:500;color:var(--ink-2);margin:18px 0 4px}
-table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
-th,td{padding:6px 10px 6px 0;text-align:right;border-bottom:1px solid var(--line)}
+.pair select{width:auto;flex:none}
+.field.reading{color:#fff;font-weight:600}
+.field.reading input{background:#fff;color:#0B2A5E;font-weight:600;border:2px solid #9CC8FF}
+.field.reading input::placeholder{color:#7A8AA3;font-weight:400}
+.checkres{margin:12px 0 0;font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tick{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink);margin-top:12px;min-height:44px}
+.tick input{width:22px;height:22px;margin:0;accent-color:#9CC8FF}
+.biglabel{font-size:14px;color:var(--ink-2)}
+.big{font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 18px}
+.big small{font-size:17px;font-weight:500;color:var(--ink-2);margin-left:8px;letter-spacing:0}
+h3{font-size:14px;font-weight:600;color:var(--ink-2);margin:0 0 4px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
+th,td{padding:10px 10px 10px 0;text-align:right;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
+th:last-child,td:last-child{padding-right:0}
 th{font-weight:500;color:var(--ink-3);font-size:13px}
-td .of{color:var(--ink-3);font-size:12.5px;white-space:nowrap}
-tr.adj td{color:var(--accent);font-weight:500}
+td .of{color:var(--ink-3);font-size:13px;white-space:nowrap}
 tr.water td{border-bottom:none}
-.panel .tools{display:flex;align-items:center;gap:10px;margin-top:10px}
-#copied{font-size:13px;color:var(--ink-3)}
-.warnings p{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:7px 10px;font-size:13.5px;margin:10px 0 0}
-.stats{display:grid;grid-template-columns:1fr auto;gap:2px 12px;margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px}
-.stats dt{color:var(--ink-2)}.stats dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
-.more{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
-.more summary{font-size:16px;font-weight:600;color:var(--ink)}
-.more .tablewrap{overflow-x:auto;margin:12px 0}
-.more td,.more th{white-space:nowrap;padding-right:14px}
-.more p{color:var(--ink-2);max-width:78ch;margin:10px 0}
-tfoot td{font-weight:600;border-bottom:none}
-.more+.more{margin-top:18px}
-
-.corrstate{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.corrstate p{margin:3px 0;font-size:13.5px;color:var(--ink-2)}
-.corrstate .main{font-size:15px;color:var(--ink)}
-.corrbuttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.corrresult{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.corrhistory{margin-top:12px;overflow-x:auto}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--good);margin-right:7px}
-tr.hit td{color:var(--good);font-weight:500}
-.corrstate.hit{border-color:var(--good);background:var(--good-bg)}
+.tools{display:flex;align-items:center;gap:12px;margin-top:14px}
+#copied{color:var(--ink-3);font-size:14px}
+.warnings p{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14.5px;margin:12px 0 0}
+.corrstate{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.08)}
+.corrstate p{margin:3px 0;color:var(--ink-2);font-size:15px}
+.corrstate .main{color:#fff;font-weight:500}
+.corrstate.hit{background:var(--good-bg);box-shadow:inset 0 0 0 1px var(--good)}
 .corrstate.hit .main{color:var(--good)}
-.check .fields{margin-top:8px}
-.checkres{margin:8px 0 0;font-size:14px;color:var(--ink-2)}
-.tick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin-top:8px}
-.tick input{width:auto;margin:0}
-#scheck{margin-top:10px}
-.figgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px 32px;margin:16px 0 8px}
+.corrresult table{margin-top:6px}
+.corrbuttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.corrhistory{margin-top:16px;overflow-x:auto}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--good);margin-right:8px;vertical-align:0}
+tr.hit td{color:var(--good);font-weight:500}
+details.fold{border-top:1px solid var(--line)}
+details.fold:first-child{border-top:0}
+details.fold summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:52px;font-weight:600;font-size:16px}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:rotate(45deg);margin:0 6px 4px 0}
+details.fold[open] summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+.tablewrap{overflow-x:auto;margin:2px 0 16px}
+.fold td,.fold th{white-space:nowrap;padding-right:14px;font-size:14px}
+tfoot td{font-weight:600;border-bottom:none}
+.figgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px 28px;margin:6px 0 16px}
 .fig h4{font-size:15px;font-weight:600;margin:0 0 2px}
-.more .fig p.cap{font-size:13px;color:var(--ink-2);margin:0 0 6px;max-width:none}
+.fig p.cap{font-size:13.5px;color:var(--ink-2);margin:0 0 6px}
 .flg{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:12.5px;color:var(--ink-2);margin:0 0 2px}
 .flg span{display:inline-flex;align-items:center;gap:5px}
 .chart{position:relative}
 .chart svg{display:block;width:100%;height:auto;font-family:inherit}
-.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;line-height:1.45;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px;line-height:1.45;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2}
+@media (max-width:520px){.step{padding:16px 14px 18px;border-radius:18px}h1{font-size:26px}.big{font-size:42px}}
 </style>
 </head>
 <body>
 <div class="page">
-<header>
 <h1>Osmolality calculator</h1>
-</header>
-<div class="layout">
-<main>
-<section>
-<div class="sechead"><h2>Components</h2><select id="preset" aria-label="Start from a preset" style="width:auto"></select></div>
+
+<section class="step s1" aria-labelledby="h1s">
+<div class="stephead"><span class="num" aria-hidden="true">1</span><h2 id="h1s">Formulate the solution</h2><button type="button" class="tipbtn" aria-expanded="false" aria-controls="tip1"><span class="tipicon" aria-hidden="true">!</span>Tips</button></div>
+<div class="tipbody" id="tip1" hidden>List every salt and additive at its final concentration, with the stock you pipette it from (leave the stock empty to weigh a solid). Then choose the adjustment solution, usually a sugar, and its stock. Set the target osmolality and the final volume; the calculator works out how much adjustment solution the mix needs.</div>
+<div class="stepbody">
+<div class="subhead"><span>Components</span><select id="preset" aria-label="Start from a preset" style="width:auto;font-size:15px;font-weight:400"></select></div>
 <div class="rowhead" id="rowHead"><span>Component</span><span>Final concentration</span><span>Stock</span></div>
 <div class="rows" id="rows"></div>
-<div class="toolbar"><button type="button" id="addRow">Add component</button><label class="inline" id="phWrap">pH for buffers <input type="number" id="pH" step="0.05" min="2" max="12"></label></div>
-</section>
-<section>
-<h2>Top up to a target</h2>
+<div class="toolbar"><button type="button" id="addRow">Add component</button><label class="inline" id="phWrap">pH for buffers <input type="number" id="pH" step="0.05" min="2" max="12" inputmode="decimal"></label></div>
+<div class="subhead"><span>Adjustment solution</span></div>
 <div class="fields">
-<label class="field">Top up with<select id="adj"></select></label>
-<div class="field">Stock<div class="pair"><input type="number" id="adjStock" step="any" min="0" placeholder="solid" aria-label="Top-up stock concentration"><select id="adjStockUnit" aria-label="Top-up stock unit"></select></div></div>
-<div class="field">Target (mOsm/kg)<div class="pair"><input type="number" id="ref" step="1" aria-label="Reference osmolality"><span>+</span><input type="number" id="delta" step="1" aria-label="Offset"></div></div>
-<label class="field">Final volume (mL)<input type="number" id="vol" step="any" min="0"></label>
+<label class="field">Solute<select id="adj"></select></label>
+<div class="field">Stock<div class="pair"><input type="number" id="adjStock" step="any" min="0" placeholder="solid" inputmode="decimal" aria-label="Adjustment stock concentration"><select id="adjStockUnit" aria-label="Adjustment stock unit"></select></div></div>
 <label class="field" id="adjFormWrap" hidden>Form you weigh<select id="adjForm"></select></label>
 </div>
-<details id="calib"><summary>Measured base osmolality</summary>
-<label class="field">Components above, before topping up (mOsm/kg)<input type="number" id="measured" step="1"></label>
-</details>
-<details id="scheck" class="check"><summary>Measure top-up stock</summary>
+<div class="subhead"><span>Target</span></div>
 <div class="fields">
-<label class="field">Dilution factor (×)<input type="number" id="scDil" step="any" min="1"></label>
-<label class="field">Reading 1 (mOsm/kg)<input type="number" id="scM1" step="1" min="0"></label>
-<label class="field">Reading 2 (optional)<input type="number" id="scM2" step="1" min="0"></label>
+<div class="field">Osmolality (mOsm/kg)<div class="pair"><input type="number" id="ref" step="1" inputmode="decimal" aria-label="Target osmolality"><span>+</span><input type="number" id="delta" step="1" inputmode="decimal" aria-label="Offset"></div></div>
+<label class="field">Final volume (mL)<input type="number" id="vol" step="any" min="0" inputmode="decimal"></label>
+</div>
+</div>
+</section>
+
+<section class="step s2" aria-labelledby="h2s">
+<div class="stephead"><span class="num" aria-hidden="true">2</span><h2 id="h2s">Measure the adjustment solution<span class="opt">optional</span></h2><button type="button" class="tipbtn" aria-expanded="false" aria-controls="tip2"><span class="tipicon" aria-hidden="true">!</span>Tips</button></div>
+<div class="tipbody" id="tip2" hidden>Dilute the adjustment stock by the dilution factor (4× means 1 part stock plus 3 parts water), measure it once or twice and enter the readings. You see the reading expected at the nominal concentration and the concentration your reading implies. Tick the box to use the measured concentration for the mix and for corrections.</div>
+<div class="stepbody" id="scheck">
+<p class="empty" id="scNone" hidden>Enter a liquid stock for the adjustment solution in step 1.</p>
+<div id="scBody">
+<div class="fields">
+<label class="field">Dilution factor (×)<input type="number" id="scDil" step="any" min="1" inputmode="decimal"></label>
+<label class="field reading">Reading 1 (mOsm/kg)<input type="number" id="scM1" step="1" min="0" inputmode="decimal"></label>
+<label class="field reading">Reading 2 (optional)<input type="number" id="scM2" step="1" min="0" inputmode="decimal"></label>
 </div>
 <p class="checkres" id="scRes"></p>
-<label class="tick"><input type="checkbox" id="scUse">Use measured stock concentration</label>
-</details>
-</section>
-<section id="corrSection">
-<h2>Correction</h2>
-<div id="corrInactive" class="corrstate">
-<div class="corrbuttons"><button type="button" id="corrStart">Start correction</button></div>
+<label class="tick"><input type="checkbox" id="scUse">Use measured concentration</label>
 </div>
+</div>
+</section>
+
+<section class="step s3" aria-labelledby="h3s" aria-live="polite">
+<div class="stephead"><span class="num" aria-hidden="true">3</span><h2 id="h3s">Mix</h2><button type="button" class="tipbtn" aria-expanded="false" aria-controls="tip3"><span class="tipicon" aria-hidden="true">!</span>Tips</button></div>
+<div class="tipbody" id="tip3" hidden>What to pipette for the final volume: each stock, then the water. Copy recipe puts the list on the clipboard for your notebook.</div>
+<div class="stepbody">
+<div class="biglabel" id="bigLabel">Target</div>
+<div class="big" id="big"></div>
+<h3 id="recipeHead">Mix</h3>
+<table id="recipe"></table>
+<div class="tools"><button type="button" id="copy">Copy recipe</button><span id="copied" aria-live="polite"></span></div>
+<div class="warnings" id="warnings"></div>
+</div>
+</section>
+
+<section class="step s4" aria-labelledby="h4s">
+<div class="stephead"><span class="num" aria-hidden="true">4</span><h2 id="h4s">Measure and correct</h2><button type="button" class="tipbtn" aria-expanded="false" aria-controls="tip4"><span class="tipicon" aria-hidden="true">!</span>Tips</button></div>
+<div class="tipbody" id="tip4" hidden>Start the correction once the mix is made. Measure one or two samples, enter the readings and press Adjust; each reading's sample volume is subtracted automatically. Within tolerance the cycle turns green. Otherwise add the suggested volumes, press Apply and measure again. All other components stay at their concentrations.</div>
+<div class="stepbody">
+<div id="corrInactive"><button type="button" class="primary" id="corrStart">Start correction</button></div>
 <div id="corrActive" hidden>
 <div class="fields">
-<label class="field">Target (mOsm/kg)<input type="number" id="corrTarget" step="1" min="0"></label>
-<label class="field">Tolerance ± (mOsm/kg)<input type="number" id="corrTol" step="1" min="0"></label>
-<label class="field">Sample per reading (µL)<input type="number" id="corrSample" step="1" min="0"></label>
-<label class="field">Reading 1 (mOsm/kg)<input type="number" id="corrMeasured" step="1" min="0"></label>
-<label class="field">Reading 2 (optional)<input type="number" id="corrMeasured2" step="1" min="0"></label>
+<label class="field reading">Reading 1 (mOsm/kg)<input type="number" id="corrMeasured" step="1" min="0" inputmode="decimal"></label>
+<label class="field reading">Reading 2 (optional)<input type="number" id="corrMeasured2" step="1" min="0" inputmode="decimal"></label>
+</div>
+<div class="fields">
+<label class="field">Target (mOsm/kg)<input type="number" id="corrTarget" step="1" min="0" inputmode="decimal"></label>
+<label class="field">Tolerance ± (mOsm/kg)<input type="number" id="corrTol" step="1" min="0" inputmode="decimal"></label>
+<label class="field">Sample per reading (µL)<input type="number" id="corrSample" step="1" min="0" inputmode="decimal"></label>
 </div>
 <div class="corrstate" id="corrState"></div>
 <div class="corrbuttons">
-<button type="button" id="corrAdjust">Adjust</button>
+<button type="button" class="primary" id="corrAdjust">Adjust</button>
 <button type="button" id="corrApply">Apply</button>
 <button type="button" id="corrRestart">Restart</button>
 </div>
 <div class="corrhistory" id="corrHistory"></div>
 </div>
+</div>
 </section>
-<details class="more"><summary>Calculation details</summary>
+
+<section class="step s5" aria-labelledby="h5s">
+<div class="stephead"><span class="num" aria-hidden="true">5</span><h2 id="h5s">Details</h2><button type="button" class="tipbtn" aria-expanded="false" aria-controls="tip5"><span class="tipicon" aria-hidden="true">!</span>Tips</button></div>
+<div class="tipbody" id="tip5" hidden>The calculation details break the predicted osmolality down by component and model. The figures show how the models behave and how the adjustment is solved for your current solution.</div>
+<div class="stepbody">
+<details class="fold"><summary>Calculation details</summary>
 <div class="tablewrap"><table id="breakdown"></table></div>
 </details>
-<details class="more" id="figs"><summary>Figures</summary>
+<details class="fold" id="figs"><summary>Figures</summary>
 <div class="figgrid">
 <div class="fig"><h4>Salts fall below ideal</h4><div class="flg" id="lg1"></div><div class="chart" id="fig1"></div></div>
 <div class="fig"><h4>Neutral-solute non-ideality</h4><div class="flg" id="lg2"></div><div class="chart" id="fig2"></div></div>
 <div class="fig"><h4>PEG climbs steeply</h4><div class="flg" id="lg3"></div><div class="chart" id="fig3"></div></div>
 <div class="fig"><h4>Buffers change form with pH</h4><p class="cap" id="cap4"></p><div class="flg" id="lg4"></div><div class="chart" id="fig4"></div></div>
 <div class="fig"><h4>Screening length shrinks with salt</h4><p class="cap" id="cap5"></p><div class="flg" id="lg5"></div><div class="chart" id="fig5"></div></div>
-<div class="fig"><h4>How the top-up is solved</h4><p class="cap" id="cap6"></p><div class="flg" id="lg6"></div><div class="chart" id="fig6"></div></div>
+<div class="fig"><h4>How the adjustment is solved</h4><p class="cap" id="cap6"></p><div class="flg" id="lg6"></div><div class="chart" id="fig6"></div></div>
 </div>
 </details>
-</main>
-<aside class="panel" aria-live="polite">
-<div class="label" id="bigLabel">Target</div>
-<div class="big" id="big"></div>
-<h3 id="recipeHead">Mix</h3>
-<table id="recipe"></table>
-<div class="tools"><button type="button" id="copy">Copy recipe</button><span id="copied" aria-live="polite"></span></div>
-<div class="warnings" id="warnings"></div>
-</aside>
 </div>
+</section>
 </div>
 <script>
+
 
 const A_PHI=0.3915,B_PITZER=1.2,RHO_W=0.99705,A_DH=0.5085;
 const MW_WATER_KG=0.01801528, MOL_WATER_PER_KG=1/MW_WATER_KG;
@@ -271,9 +296,9 @@ const PRESETS=[
 ['300 mM sucrose',[['sucrose',300]]]
 ];
 
-let rows=[{id:'NaCl',val:150,unit:'mM',form:0}];
-let st={pH:7.4,adj:'sucrose',adjForm:0,ref:300,delta:0,measured:'',vol:1,stocks:{},corr:null};
-try{const s=JSON.parse(localStorage.getItem('osmcalc-v1')||'null');if(s&&Array.isArray(s.rows)&&s.st){rows=s.rows.filter(r=>BY[r.id]);st=Object.assign(st,s.st);}}catch(e){}
+let rows=[{id:'NaCl',val:10,unit:'mM',form:0}];
+let st={pH:7.4,adj:'glucose',adjForm:0,ref:900,delta:0,measured:'',vol:10,stocks:{},corr:null};
+try{localStorage.removeItem('osmcalc-v1');}catch(e){}
 if(!st.stocks)st.stocks={};
 const DEFAULT_STOCK={NaCl:[4.5,'M'],KCl:[1,'M'],LiCl:[1,'M'],NH4Cl:[1,'M'],CaCl2:[100,'mM'],MgCl2:[1,'M'],NaNO3:[1,'M'],KNO3:[1,'M'],NaAc:[3,'M'],KAc:[1,'M'],NaHCO3:[1,'M'],KHCO3:[1,'M'],Na2SO4:[1,'M'],K2SO4:[0.5,'M'],MgSO4:[1,'M'],NaOH:[1,'M'],Na2HPO4:[0.2,'M'],NaH2PO4:[1,'M'],KH2PO4:[1,'M'],K2HPO4:[1,'M'],HEPES:[1,'M'],MOPS:[1,'M'],MES:[0.5,'M'],Tris:[1,'M'],NaPi:[0.2,'M'],KPi:[0.2,'M'],glucose:[1,'M'],sucrose:[1,'M'],trehalose:[1,'M'],sorbitol:[1,'M'],mannitol:[0.5,'M'],glycerol:['','M'],urea:[8,'M'],DMSO:['','M'],ethanol:['','M']};
 C.filter(c=>c.type==='polymer').forEach(c=>DEFAULT_STOCK[c.id]=[50,'pct']);
@@ -288,7 +313,7 @@ function stockFromMeasurement(id,meas,dil){const k=id+'|'+meas+'|'+dil;if(k in _
  for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(f(mid)<meas)lo=mid;else hi=mid;}return (_effCache[k]=(lo+hi)/2);}
 function stockMeasured(id){const sc=st.scheck&&st.scheck[id];return sc?stockFromMeasurement(id,meanReadings(sc.m1,sc.m2),parseFloat(sc.dil)):NaN;}
 function stockOf(id){const sc=st.scheck&&st.scheck[id];if(sc&&sc.use){const e=stockMeasured(id);if(e>0)return {val:+e.toPrecision(4),unit:'M',measured:true};}return stockNominal(id);}
-function save(){try{localStorage.setItem('osmcalc-v1',JSON.stringify({rows,st}));}catch(e){}}
+function save(){}
 
 function mw(comp,form){const f=comp.forms[form]||comp.forms[0];return f[1]||0;}
 function amountOf(c,val,unit,form){const v=parseFloat(val);if(!isFinite(v)||v<0)return 0;
@@ -341,7 +366,7 @@ function compute(items,pH){
  else if(divalent>5e-4&&phos>5e-4&&(ions.Mg||0)>2e-3)warns.push('Magnesium with phosphate can precipitate at higher concentrations.');
  if(P.I>3)warns.push('Ionic strength above 3 mol/kg; expect larger errors.');
   const neutralM=per.filter(p=>p.c.type==='neutral').reduce((a,p)=>a+p.m,0);
-  if(neutralM>0.5&&P.I>0.01)warns.push('Concentrated neutral-solute + electrolyte mixture: specific salt–neutral cross-interaction terms are not included unless published parameters are available, so mixture error can exceed the binary-solution error.');
+  if(neutralM>0.5&&P.I>0.05)warns.push('Salt–sugar interactions are not modelled; expect a larger error in this concentrated mixture.');
  return {osm:total*1000,osmL:total*w*1000,ideal:ideal*1000,I:P.I,Imolar:P.I*w,w,per,warns,phiMix};}
 
 function itemsFromRows(extra){const items=rows.map(r=>({c:BY[r.id],amt:toAmount(r),r}));if(extra){const ex=items.find(it=>it.c.id===extra.id);if(ex)ex.amt+=extra.amt;else items.push({c:BY[extra.id],amt:extra.amt,adj:true});}return items;}
@@ -436,7 +461,7 @@ function buildRows(){rowsEl.innerHTML='';
  rows.forEach((r,i)=>{const c=BY[r.id],units=unitsFor(c);if(!units.find(u=>u[0]===r.unit))r.unit=units[0][0];
   const sk=stockNominal(c.id),showForm=needsForm(c,r.unit,sk.unit,parseFloat(sk.val));
   const d=document.createElement('div');d.className='row'+(showForm?' has-form':'');
-  d.innerHTML='<select class="c-comp" aria-label="Component">'+compOptions(r.id)+'</select>'+
+  d.innerHTML='<select class="c-comp" aria-label="Component">'+compOptions(r.id)+'</select><span class="mlab mlab-f" aria-hidden="true">Final concentration</span><span class="mlab mlab-s" aria-hidden="true">Stock</span>'+
    '<input type="number" class="c-val" step="any" min="0" placeholder="final" aria-label="Final concentration of '+c.name+'" value="'+(r.val??'')+'">'+
    '<select class="c-unit" aria-label="Final concentration unit">'+opts(units,r.unit)+'</select>'+
    '<input type="number" class="c-sval" step="any" min="0" placeholder="solid" aria-label="Stock concentration of '+c.name+'" value="'+sk.val+'">'+
@@ -475,13 +500,13 @@ function update(){save();const S=solve(),base=S.base,off=S.offset||0,adj=BY[st.a
  $('recipe').innerHTML=rh+'</tbody>';$('recipeHead').textContent=V>0?'Mix for '+vText(V):'Mix';if(!(V>0))warns.unshift('Enter a final volume.');if(statusWarn)warns.unshift(statusWarn);
  $('warnings').innerHTML=warns.map(w=>'<p>'+w+'</p>').join('');
  // stock check
- {const sc=scState(st.adj),wrap=$('scheck'),nomS=stockNominal(st.adj),nomM=amountOf(adj,nomS.val,nomS.unit,st.adjForm);wrap.hidden=!(nomM>0);
+ {const sc=scState(st.adj),nomS=stockNominal(st.adj),nomM=amountOf(adj,nomS.val,nomS.unit,st.adjForm);$('scBody').hidden=!(nomM>0);$('scNone').hidden=nomM>0;
   const b2=(id,v)=>{const el=$(id);if(document.activeElement!==el)el.value=v??'';};b2('scDil',sc.dil);b2('scM1',sc.m1);b2('scM2',sc.m2);$('scUse').checked=!!sc.use;
   const dil=parseFloat(sc.dil),mean=meanReadings(sc.m1,sc.m2),eff=stockFromMeasurement(st.adj,mean,dil),exp=nomM>0&&dil>=1?compute([{c:adj,amt:nomM/dil}],7.4).osm:NaN;
   $('scRes').textContent=(isFinite(exp)?'Expected at '+sig(nomM)+' M: '+fmt(exp,0)+' mOsm/kg.':'')+(eff>0?' Measured: '+sig(eff)+' M ('+fmt(100*eff/nomM,1)+'% of nominal).':'');}
  // calculation details
  let bh='<thead><tr><th>Component</th><th>Molality</th><th>Ideal</th><th>Predicted</th><th>Model</th></tr></thead><tbody>';
- res.per.forEach((p,i)=>{if(!(p.amt>0))return;const added=i>=rows.length;bh+='<tr'+(added?' class="adj"':'')+'><td>'+p.c.name+(added?' (top-up)':'')+(p.c.type==='buffer'?' ('+fmt(100*p.f,0)+'% base form)':'')+'</td><td>'+fmt(p.m*1000,p.c.type==='polymer'?2:1)+' mmol/kg</td><td>'+fmt(p.ideal*1000,1)+'</td><td>'+fmt(p.contrib*1000,1)+'</td><td>'+p.c.note+'</td></tr>';});
+ res.per.forEach((p,i)=>{if(!(p.amt>0))return;const added=i>=rows.length;bh+='<tr'+(added?' class="adj"':'')+'><td>'+p.c.name+(added?' (adjustment)':'')+(p.c.type==='buffer'?' ('+fmt(100*p.f,0)+'% base form)':'')+'</td><td>'+fmt(p.m*1000,p.c.type==='polymer'?2:1)+' mmol/kg</td><td>'+fmt(p.ideal*1000,1)+'</td><td>'+fmt(p.contrib*1000,1)+'</td><td>'+p.c.note+'</td></tr>';});
  bh+='</tbody><tfoot><tr><td>Total</td><td></td><td>'+fmt(res.ideal,1)+' mOsm/L</td><td>'+fmt(res.osm,1)+' mOsm/kg</td><td>'+(off?'plus measured offset '+fmt(off,1):'')+'</td></tr></tfoot>';
  $('breakdown').innerHTML=bh;
  window._last={S,adj,V};if(figsOpen())drawDynamicFigs();renderCorrection();}
@@ -555,7 +580,7 @@ function drawDynamicFigs(){if(!staticDrawn)drawStaticFigs();const {S,adj}=window
  if(S.target>0)s6.push({label:'Target',color:SER[1],width:1.5,pts:[{x:0,y:S.target},{x:xmax*1000,y:S.target}],hover:false});
  const p6=S.status==='ok'&&S.x>0?[{x:S.x*1000,y:S.target,label:'Add '+concLabel(adj,S.x)+' '+lname(adj),color:SER[1]}]:[];
  $('lg6').innerHTML=legendHTML(s6);
- let cap='Your components, topped up with '+lname(adj)+'. ';
+ let cap='Adjusted with '+lname(adj)+'. ';
  if(S.status==='ok'&&S.x>0){const nu=adj.type==='salt'?Object.values(adj.ions).reduce((a,b)=>a+b,0):1,ix=Math.max(0,(S.target-S.base.ideal)/nu)/1000;cap+='The model says add '+concLabel(adj,S.x)+'; counting ideal particles would say '+concLabel(adj,ix)+'.';}
  else if(S.status==='above')cap+='The components are already at or above the target.';else if(S.status==='unreachable')cap+='The target is out of reach within the model range.';else cap+='Set a target to see the solution.';
  $('cap6').textContent=cap;
@@ -570,8 +595,8 @@ function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(fig
  const asEl=$('adjStock'),auEl=$('adjStockUnit');
  asEl.oninput=()=>{setStock(st.adj,asEl.value,stockNominal(st.adj).unit);update();};asEl.onchange=()=>{buildRows();update();};
  auEl.onchange=()=>{setStock(st.adj,stockNominal(st.adj).val,auEl.value);buildRows();update();};
- ['pH','ref','delta','measured','vol'].forEach(k=>{const el=$(k);el.value=st[k];el.oninput=()=>{st[k]=k==='pH'?(parseFloat(el.value)||7):el.value;update();};});
- if(st.measured!=='')$('calib').open=true;
+ ['pH','ref','delta','vol'].forEach(k=>{const el=$(k);el.value=st[k];el.oninput=()=>{st[k]=k==='pH'?(parseFloat(el.value)||7):el.value;update();};});
+ document.querySelectorAll('.tipbtn').forEach(b=>{b.onclick=()=>{const t=$(b.getAttribute('aria-controls')),open=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(open));t.hidden=!open;};});
  $('addRow').onclick=()=>{rows.push({id:'NaCl',val:'',unit:'mM',form:0});buildRows();update();const all=rowsEl.querySelectorAll('.c-comp');if(all.length)all[all.length-1].focus();};
  $('copy').onclick=async()=>{const t=recipeText(),msg=$('copied');try{await navigator.clipboard.writeText(t);msg.textContent='Copied.';}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');msg.textContent='Copied.';}catch(_){msg.textContent='Copy failed. Select the table instead.';}ta.remove();}setTimeout(()=>msg.textContent='',2500);};
  $('corrStart').onclick=corrStart;$('corrRestart').onclick=corrStart;$('corrAdjust').onclick=corrAdjust;$('corrApply').onclick=corrApply;
@@ -582,7 +607,7 @@ function boot(){rowsEl=$('rows');$('figs').addEventListener('toggle',()=>{if(fig
  $('corrTol').oninput=e=>{if(st.corr){st.corr.tol=e.target.value;save();renderCorrection();}};
  ['scDil','scM1','scM2'].forEach((id,k)=>{$(id).oninput=e=>{scState(st.adj)[['dil','m1','m2'][k]]=e.target.value;update();};});
  $('scUse').onchange=e=>{scState(st.adj).use=e.target.checked;buildRows();update();};
- if(Object.values(st.scheck||{}).some(x=>x&&(x.use||x.m1)))$('scheck').open=true;
+ 
  buildRows();update();}
 if(typeof document!=='undefined')boot();
 </script>
